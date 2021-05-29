@@ -44,6 +44,7 @@ from textblob import TextBlob
 from util import cn_api_for
 from tqdm import tqdm
 from util import spacy_postag
+from collections import Counter
 
 resource_path = '../resources'
 
@@ -125,19 +126,20 @@ def build_thesarsus(word_dict: typing.Dict, thesarsus: typing.Dict):
     return thesarsus
 
 
-def extract_words(sents: typing.List):
+def extract_words(sents: typing.List, min_cnt:int=1):
     """
     Extract only Noun, Adjective, and Adverb.
     Args:
         sents: List of Sentences
+        min_cnt: Minimun number of appearance of words
 
     Returns: extract word dictionary. Key: pos-tag, Value: list of words
 
     """
     word_dict = {
-        "Noun": set(),
-        "Adjective": set(),
-        "Adverb": set()
+        "Noun": [],
+        "Adjective": [],
+        "Adverb": []
     }
 
     for s in tqdm(sents, desc='Extracting words'):
@@ -147,11 +149,17 @@ def extract_words(sents: typing.List):
             if t_.startswith('NN'):
                 # if noun -> singularise
                 w_ = do_singularise(w_)
-                word_dict['Noun'].add(w_)
+                word_dict['Noun'].append(w_)
             if t_.startswith('RB'):
-                word_dict['Adverb'].add(w_)
+                word_dict['Adverb'].append(w_)
             if t_.startswith('JJ'):
-                word_dict['Adjective'].add(w_)
+                word_dict['Adjective'].append(w_)
+
+    # extract word appeared more than min_cnt
+    for key, value in word_dict.items():
+        counts = Counter(value)
+        new_words = [word for word, cnt in counts.items() if cnt >= min_cnt]
+        word_dict[key] = new_words
 
     for key, value in word_dict.items():
         word_dict[key] = list(set(value)) # use unique words only
@@ -244,7 +252,7 @@ def main(args):
 
     # First build or update thesarsus
     if args.update_thesarsus:
-        word_dict = extract_words(train_sents + dev_sents + test_sents)
+        word_dict = extract_words(train_sents + dev_sents + test_sents, min_cnt=args.min_cnt)
         thesarsus = build_thesarsus(word_dict, thesarsus)
 
         with open('../cn_thesaursus.json', 'w', encoding='utf-8') as saveFile:
@@ -259,6 +267,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--update_thesarsus', type=bool, default=False,
                         help='whehter to update thesarsus we are going to use. Should be True at the first time.')
+    parser.add_argument('--min_cnt', type=int, default=5,
+                        help='Minimum occurance of words we are going to extract')
 
     args = parser.parse_args()
 
