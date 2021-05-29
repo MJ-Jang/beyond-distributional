@@ -67,21 +67,23 @@ def extract_verbs(
 
 
 def cn_api_for(word: typing.Text, relation: typing.Text, weight_threshold: float = 1.0):
+
     assert relation in ['Antonym', 'DistinctFrom', 'HasA', 'IsA', 'Synonym']
     rm_pattern = re.compile('a |A |an |An |')
     try:
         response = requests.get(f'http://api.conceptnet.io/query?start=/c/en/{word}&rel=/r/{relation}&limit=1000')
         obj = response.json()
     except json.decoder.JSONDecodeError:
-        return set(), list()
+        return list(), list()
 
     outp = list()
     weights = list()
-    for e in obj['edges']:
+    for i, e in enumerate(obj['edges']):
         weight = e['weight']
         end_, ln_ = e['end']['label'], e['end']['language']
 
         if ln_ == 'en' and len(end_.split(" ")) == 1: # replace to only one token antonym
             outp.append(rm_pattern.sub('', end_).strip())
             weights.append(weight)
-    return set(outp), weights
+    return outp, weights
+

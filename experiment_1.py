@@ -57,13 +57,15 @@ def top_hitrate(pred: typing.List, pred_score: typing.List, target: typing.List,
 
     """
     pred_ = pred[:top_k]
-    score = pred_score[:top_k]
+    score = pred_score[:len(pred_)]
 
     hit_ = [1 if p in target else 0 for p in pred_]
 
     hr = sum(hit_) / top_k
-    w_hr = np.dot(np.array(hit_), np.array(score)) / sum(score)
-
+    if score:
+        w_hr = np.dot(np.array(hit_), np.array(score)) / sum(score)
+    else:
+        w_hr = 0.0
     return {"hr": hr, "w_hr": w_hr}
 
 
@@ -99,7 +101,7 @@ def prediction(model, data: typing.List, batch_size: int = 16):
     return preds, data
 
 
-def evaluate(preds: typing.List, data: typing.List):
+def evaluate_plm(preds: typing.List, data: typing.List):
     """
 
     Args:
@@ -117,7 +119,8 @@ def evaluate(preds: typing.List, data: typing.List):
         "W_HR@3": [],
         "HR@5": [],
         "W_HR@5": [],
-        "question_type": []
+        "question_type": [],
+        "pos_tag": []
     }
 
     for i in range(len(data)):
@@ -126,6 +129,7 @@ def evaluate(preds: typing.List, data: typing.List):
         pred_score_ = preds[i]['scores']
         wrong_prediction_ = data[i]['wrong_prediction']
         input_sent_ = data[i]['input_sent']
+        pos_tag_ = data[i]['pos_tag']
 
         top1_res_ = top_hitrate(pred_token_, pred_score_, wrong_prediction_, top_k=1)
         top3_res_ = top_hitrate(pred_token_, pred_score_, wrong_prediction_, top_k=3)
@@ -142,17 +146,23 @@ def evaluate(preds: typing.List, data: typing.List):
             result_dict['question_type'].append('ask_antonym')
         if 'antonym' in input_sent_:
             result_dict['question_type'].append('ask_synonym')
+        result_dict['pos_tag'].append(pos_tag_)
 
     # 2. calculate statistics of metrics:
-
     output_metric_dict = {
         "All": {},
         "Ask_Antonym": {},
-        "Ask_Synonym": {}
+        "Ask_Synonym": {},
+        "Noun": {},
+        "Adjective": {},
+        "Adverb": {}
     }
 
     synonym_idx = [i for i, t in enumerate(result_dict['question_type']) if t == 'ask_synonym']
     antonym_idx = [i for i, t in enumerate(result_dict['question_type']) if t == 'ask_antonym']
+    noun_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Noun']
+    adj_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adjective']
+    adv_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adverb']
 
     for key, value in result_dict.items():
         # only take average of hit rate
@@ -162,10 +172,16 @@ def evaluate(preds: typing.List, data: typing.List):
                                                                        if i in synonym_idx]))
             output_metric_dict['Ask_Antonym'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
                                                                        if i in antonym_idx]))
+            output_metric_dict['Noun'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
+                                                                       if i in noun_idx]))
+            output_metric_dict['Adjective'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
+                                                                       if i in adj_idx]))
+            output_metric_dict['Adverb'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
+                                                                       if i in adv_idx]))
     return output_metric_dict
 
 
-def main(args):
+def exp_pretrained_models(args):
     # 1. Load pretrained model
     print(f"Loading {args.model_type} model...")
     pretrain_model_dict = {
@@ -196,7 +212,7 @@ def main(args):
     preds, data = prediction(unmasker, data, batch_size=args.batch_size)
 
     # 4. Evaluate result
-    result = evaluate(preds, data)
+    result = evaluate_plm(preds, data)
 
     os.makedirs(args.save_dir, exist_ok=True)
     result_file_name = os.path.join(args.save_dir, f"{args.model_type}-result.yaml")
@@ -213,6 +229,110 @@ def main(args):
             predFile.write("\n")
 
 
+def exp_conceptnet_baseline(args):
+
+    with open(args.thesaursus_file, 'r', encoding='utf-8') as loadFile:
+        thesaursus = json.load(loadFile)
+
+    # 1. conduct prediction
+    # check whether top-k hitrate between synonym+hypernym and antonym, and vice versa
+    # omitted weighted HR since weights of ConceptNet doesn't have specific meaning
+    result_dict = {
+        "HR@1": [],
+        "W_HR@1": [],
+        "HR@3": [],
+        "W_HR@3": [],
+        "HR@5": [],
+        "W_HR@5": [],
+        "pos_tag": [],
+        "question_type": []
+    }
+
+    for word, value in thesaursus.items():
+        pos_tag_ = value['tag']
+
+        synonyms_ = value.get('synonym')
+        antonyms_ = value.get('antonym')
+        hypernyms_ = value.get('hypernym')
+
+        # 1. check is_antonym contains synonyms or hypernyms (question type: ask_antonym)
+        antonym_tokens_ = antonyms_['tokens']
+        antonym_weights_ = antonyms_['weights']
+        wrong_answers_ = synonyms_['tokens'] + hypernyms_['tokens']
+
+        top1_res_ = top_hitrate(antonym_tokens_, antonym_weights_, wrong_answers_, top_k=1)
+        top3_res_ = top_hitrate(antonym_tokens_, antonym_weights_, wrong_answers_, top_k=3)
+        top5_res_ = top_hitrate(antonym_tokens_, antonym_weights_, wrong_answers_, top_k=5)
+
+        # save results
+        result_dict['HR@1'].append(top1_res_['hr'])
+        result_dict['W_HR@1'].append(top1_res_['w_hr'])
+        result_dict['HR@3'].append(top3_res_['hr'])
+        result_dict['W_HR@3'].append(top3_res_['w_hr'])
+        result_dict['HR@5'].append(top5_res_['hr'])
+        result_dict['W_HR@5'].append(top5_res_['w_hr'])
+        result_dict['question_type'].append('ask_antonym')
+        result_dict['pos_tag'].append(pos_tag_)
+
+        # 2. check is_synonym contains antonyms (question type: ask_synonym)
+
+        # 1. check is_antonym contains synonyms or hypernyms (question type: ask_antonym)
+        synonym_tokens = synonyms_['tokens']
+        synonym_weights_ = synonyms_['weights']
+        wrong_answers_ = antonyms_['tokens']
+
+        top1_res_ = top_hitrate(synonym_tokens, synonym_weights_, wrong_answers_, top_k=1)
+        top3_res_ = top_hitrate(synonym_tokens, synonym_weights_, wrong_answers_, top_k=3)
+        top5_res_ = top_hitrate(synonym_tokens, synonym_weights_, wrong_answers_, top_k=5)
+
+        # save results
+        result_dict['HR@1'].append(top1_res_['hr'])
+        result_dict['W_HR@1'].append(top1_res_['w_hr'])
+        result_dict['HR@3'].append(top3_res_['hr'])
+        result_dict['W_HR@3'].append(top3_res_['w_hr'])
+        result_dict['HR@5'].append(top5_res_['hr'])
+        result_dict['W_HR@5'].append(top5_res_['w_hr'])
+        result_dict['question_type'].append('ask_synonym')
+        result_dict['pos_tag'].append(pos_tag_)
+
+    # 2. calculate statistics of metrics:
+    output_metric_dict = {
+        "All": {},
+        "Ask_Antonym": {},
+        "Ask_Synonym": {},
+        "Noun": {},
+        "Adjective": {},
+        "Adverb": {}
+    }
+
+    synonym_idx = [i for i, t in enumerate(result_dict['question_type']) if t == 'ask_synonym']
+    antonym_idx = [i for i, t in enumerate(result_dict['question_type']) if t == 'ask_antonym']
+    noun_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Noun']
+    adj_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adjective']
+    adv_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adverb']
+
+    for key, value in result_dict.items():
+        # only take average of hit rate
+        if 'HR' in key:
+            output_metric_dict['All'][f'avg_{key}'] = float(np.mean(value))
+            output_metric_dict['Ask_Synonym'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
+                                                                       if i in synonym_idx]))
+            output_metric_dict['Ask_Antonym'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
+                                                                       if i in antonym_idx]))
+            output_metric_dict['Noun'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
+                                                                       if i in noun_idx]))
+            output_metric_dict['Adjective'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
+                                                                       if i in adj_idx]))
+            output_metric_dict['Adverb'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
+                                                                       if i in adv_idx]))
+
+    os.makedirs(args.save_dir, exist_ok=True)
+    result_file_name = os.path.join(args.save_dir, f"{args.model_type}-result.yaml")
+
+    with open(result_file_name, 'w') as resultFile:
+        yaml.dump(output_metric_dict, resultFile, default_flow_style=False, sort_keys=False)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
@@ -221,8 +341,10 @@ if __name__ == '__main__':
                         help='directory path where data are located')
     parser.add_argument('--save_dir', type=str, default='output',
                         help='directory path where results will be saved')
+    parser.add_argument('--thesaursus_file', type=str, default='./cn_thesaursus.json',
+                        help='path to constructed thesaursus dictionary.')
     # params
-    parser.add_argument('--model_type', type=str, default='bert-base',
+    parser.add_argument('--model_type', type=str, default='conceptnet',
                         help='type of pre-trained models for Masked Word Prediction')
     parser.add_argument('--top_k', type=int, default=10,
                         help='top-k predictions for Masked word prediction.')
@@ -230,7 +352,10 @@ if __name__ == '__main__':
                         help='batch size for inference')
 
     args = parser.parse_args()
-    main(args)
+    if args.model_type == 'conceptnet':
+        exp_conceptnet_baseline(args)
+    else:
+        exp_pretrained_models(args)
 
 
 

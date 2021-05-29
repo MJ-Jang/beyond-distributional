@@ -164,7 +164,7 @@ def extract_words(sents: typing.List):
 
 def generate_sentences(thesarsus):
     # 3. generate template-based sentences
-    words, input_sents, wrong_predictions = list(), list(), list()
+    words, input_sents, wrong_predictions, pos_tags = list(), list(), list(), list()
     for word in thesarsus.keys():
         # If the word has synonym, use antonym-template to generate inputs.
         # If the model predicts synonyms or hypernyms as predictions, this is a wrong behaviour
@@ -181,6 +181,7 @@ def generate_sentences(thesarsus):
             input_sents += ant_sents_
             wrong_predictions += wrong_prediction_
             words += [word] * len(ant_sents_)
+            pos_tags += [thesarsus[word].get('tag')] * len(ant_sents_)
 
         # If the word has antonym, use synonym-template to generate inputs.
         # If the model predicts antonyms as predictions, this is a wrong behaviour
@@ -191,6 +192,7 @@ def generate_sentences(thesarsus):
             input_sents += syn_sents_
             wrong_predictions += wrong_prediction_
             words += [word] * len(syn_sents_)
+            pos_tags += [thesarsus[word].get('tag')] * len(syn_sents_)
 
     assert len(input_sents) == len(wrong_predictions)
     assert len(input_sents) == len(words)
@@ -200,7 +202,8 @@ def generate_sentences(thesarsus):
         instance_ = {
             "word": words[i],
             "input_sent": input_sents[i],
-            "wrong_prediction": wrong_predictions[i]
+            "wrong_prediction": wrong_predictions[i],
+            "pos_tag": pos_tags[i],
         }
         if instance_['wrong_prediction']:
             # sometimes the word has weight but no following words (need to check)
@@ -230,11 +233,8 @@ def main(args):
     test = load_snli(test_path)
     test_sents = extract_sents_from_snli(test)
 
-    # 2. Extract words from sentences
-    word_dict = extract_words(train_sents+dev_sents + test_sents)
-
     # 2. build thesarsus and back-up
-    thesarsus_path = '../cn_thesarsus.json'
+    thesarsus_path = '../cn_thesaursus.json'
     if os.path.isfile(thesarsus_path):
         with open(thesarsus_path, 'r', encoding='utf-8') as loadFile:
             thesarsus = json.load(loadFile)
@@ -244,11 +244,11 @@ def main(args):
 
     # First build or update thesarsus
     if args.update_thesarsus:
+        word_dict = extract_words(train_sents + dev_sents + test_sents)
         thesarsus = build_thesarsus(word_dict, thesarsus)
 
         with open('../cn_thesaursus.json', 'w', encoding='utf-8') as saveFile:
             json.dump(thesarsus, saveFile)
-
     # 3. generate template-based sentences
     generate_sentences(thesarsus)
 
@@ -258,7 +258,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--update_thesarsus', type=bool, default=False,
-                      help='whehter to update thesarsus we are going to use. Should be True at the first time.')
+                        help='whehter to update thesarsus we are going to use. Should be True at the first time.')
 
     args = parser.parse_args()
 
