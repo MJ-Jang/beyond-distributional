@@ -66,7 +66,11 @@ def extract_sents_from_snli(data_list: typing.List):
 
 
 def do_singularise(word: typing.Text) -> typing.Text:
-    return str(TextBlob(word).words[0].singularize())
+    transformed = TextBlob(word).words
+    if transformed:
+        return str(TextBlob(word).words[0].singularize())
+    else:
+        return word
 
 
 def build_thesarsus(word_dict: typing.Dict, thesarsus: typing.Dict):
@@ -214,6 +218,10 @@ def generate_sentences(thesarsus):
 
 def main(args):
     # 1. load data
+    train_path = os.path.join(resource_path, 'snli_1.0_train.jsonl')
+    train = load_snli(train_path)
+    train_sents = extract_sents_from_snli(train)
+    
     dev_path = os.path.join(resource_path, 'snli_1.0_dev.jsonl')
     dev = load_snli(dev_path)
     dev_sents = extract_sents_from_snli(dev)
@@ -223,7 +231,7 @@ def main(args):
     test_sents = extract_sents_from_snli(test)
 
     # 2. Extract words from sentences
-    word_dict = extract_words(dev_sents + test_sents)
+    word_dict = extract_words(train_sents+dev_sents + test_sents)
 
     # 2. build thesarsus and back-up
     thesarsus_path = '../cn_thesarsus.json'
