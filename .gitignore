@@ -130,3 +130,7 @@ dmypy.json
 
 # Data resource folder
 resources/
+
+# unnecessary
+*.DS_Store
+.idea/
