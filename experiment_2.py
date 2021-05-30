@@ -70,8 +70,8 @@ def predict_plm(
 ) -> typing.Tuple[typing.List, typing.List]:
 
     mask_token = model.tokenizer.mask_token
-    original_sents = [s.replace('Y', mask_token) for s in original_sents]
-    negated_sents = [s.replace('Y', mask_token) for s in negated_sents]
+    original_sents = [s.replace('[MASK]', mask_token) for s in original_sents]
+    negated_sents = [s.replace('[MASK]', mask_token) for s in negated_sents]
 
     original_preds, negated_preds = list(), list()
     for start in tqdm(range(0, len(original_sents), batch_size), desc='Predicting...'):

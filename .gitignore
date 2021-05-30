@@ -134,3 +134,4 @@ resources/
 # unnecessary
 *.DS_Store
 .idea/
+__MACOSX

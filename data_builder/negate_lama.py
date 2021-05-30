@@ -87,7 +87,6 @@ def negate_cn_sentences(sents: typing.List):
 
         # negate sentence where only one verb appears
         if len(verbs_) == 1:
-            sent_ = sent_.replace("[MASK]", 'Y')
             original_sents.append(sent_)
 
             verb_, v_tag_ = str(verbs_[0][0]), verbs_[0][1]
