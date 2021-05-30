@@ -123,7 +123,7 @@ def evaluate_plm(preds: typing.List, data: typing.List):
         "pos_tag": []
     }
 
-    for i in range(len(data)):
+    for i in tqdm(range(len(data)), desc='Measuring metrics'):
         # set elements
         pred_token_ = preds[i]['tokens']
         pred_score_ = preds[i]['scores']
@@ -219,7 +219,7 @@ def exp_pretrained_models(args):
     pred_file_name = os.path.join(args.save_dir, f"{args.model_type}-prediction.json")
 
     with open(result_file_name, 'w') as resultFile:
-        yaml.dump(result, resultFile, default_flow_style=False)
+        yaml.dump(result, resultFile, default_flow_style=False, sort_keys=False)
 
     print(json.dumps(result, indent="\t"))
 
@@ -311,7 +311,7 @@ def exp_conceptnet_baseline(args):
     adj_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adjective']
     adv_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adverb']
 
-    for key, value in result_dict.items():
+    for key, value in tqdm(result_dict.items(), desc='Summarising statistics...'):
         # only take average of hit rate
         if 'HR' in key:
             output_metric_dict['All'][f'avg_{key}'] = float(np.mean(value))
@@ -331,6 +331,8 @@ def exp_conceptnet_baseline(args):
 
     with open(result_file_name, 'w') as resultFile:
         yaml.dump(output_metric_dict, resultFile, default_flow_style=False, sort_keys=False)
+    print(json.dumps(output_metric_dict, indent="\t"))
+
 
 
 if __name__ == '__main__':
@@ -339,7 +341,7 @@ if __name__ == '__main__':
     # path
     parser.add_argument('--resource_dir', type=str, default='resources',
                         help='directory path where data are located')
-    parser.add_argument('--save_dir', type=str, default='output',
+    parser.add_argument('--save_dir', type=str, default='output/exp1',
                         help='directory path where results will be saved')
     parser.add_argument('--thesaursus_file', type=str, default='./cn_thesaursus.json',
                         help='path to constructed thesaursus dictionary.')
@@ -348,7 +350,7 @@ if __name__ == '__main__':
                         help='type of pre-trained models for Masked Word Prediction')
     parser.add_argument('--top_k', type=int, default=10,
                         help='top-k predictions for Masked word prediction.')
-    parser.add_argument('--batch_size', type=int, default=16,
+    parser.add_argument('--batch_size', type=int, default=32,
                         help='batch size for inference')
 
     args = parser.parse_args()
