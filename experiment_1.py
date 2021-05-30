@@ -101,7 +101,7 @@ def prediction(model, data: typing.List, batch_size: int = 16):
     return preds, data
 
 
-def evaluate_plm(preds: typing.List, data: typing.List):
+def evaluate_plm(preds: typing.List[typing.Dict], data: typing.List[typing.Dict]):
     """
 
     Args:
@@ -334,7 +334,6 @@ def exp_conceptnet_baseline(args):
     print(json.dumps(output_metric_dict, indent="\t"))
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
@@ -354,7 +353,7 @@ if __name__ == '__main__':
                         help='batch size for inference')
 
     args = parser.parse_args()
-    if args.model_type == 'conceptnet':
+    if args.model_type == 'baseline':
         exp_conceptnet_baseline(args)
     else:
         exp_pretrained_models(args)

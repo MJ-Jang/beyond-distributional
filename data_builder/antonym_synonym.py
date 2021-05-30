@@ -74,6 +74,14 @@ def do_singularise(word: typing.Text) -> typing.Text:
         return word
 
 
+def do_pluralise(word: typing.Text) -> typing.Text:
+    transformed = TextBlob(word).words
+    if transformed:
+        return str(TextBlob(word).words[0].pluralize())
+    else:
+        return word
+
+
 def build_thesarsus(word_dict: typing.Dict, thesarsus: typing.Dict):
     """
 
@@ -178,13 +186,15 @@ def generate_sentences(thesarsus):
         # If the model predicts synonyms or hypernyms as predictions, this is a wrong behaviour
         if thesarsus[word].get('synonym'):
             ant_sents_ = [t.replace('X', word) for t in ANTONYM_TEMPLATE]
-            # add the word itself because it is definitely not an antonym
-            if thesarsus[word].get('synonym'):
+            # add the word itself and it's plural form because it is definitely not an antonym
+            if thesarsus[word].get('hypernym'):
                 wrong_prediction_ = [thesarsus[word].get('synonym')['tokens'] +
-                                     thesarsus[word].get('hypernym')['tokens'] + [word]] * len(ant_sents_)
+                                     thesarsus[word].get('hypernym')['tokens'] + [word, do_pluralise(word)]] \
+                                    * len(ant_sents_)
 
             else:
-                wrong_prediction_ = [thesarsus[word].get('synonym')['tokens'] + [word]] * len(ant_sents_)
+                wrong_prediction_ = [thesarsus[word].get('synonym')['tokens'] + [word], do_pluralise(word)] \
+                                    * len(ant_sents_)
 
             input_sents += ant_sents_
             wrong_predictions += wrong_prediction_
