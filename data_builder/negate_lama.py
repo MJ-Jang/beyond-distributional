@@ -87,6 +87,7 @@ def negate_cn_sentences(sents: typing.List):
 
         # negate sentence where only one verb appears
         if len(verbs_) == 1:
+            sent_ = sent_.replace("[MASK]", 'Y')
             original_sents.append(sent_)
 
             verb_, v_tag_ = str(verbs_[0][0]), verbs_[0][1]
@@ -109,12 +110,23 @@ def process_lama_negation():
             "negated_sents": negated_sents
         }
     )
+    # remove duplicates
     outp_df = outp_df.drop_duplicates()
 
-    save_filename = os.path.join(resource_path, 'lama_neg.tsv')
+    # save as jsonl for consistency in data format
+    outp_jsonl = []
+    for o, n in zip(outp_df['original_sents'].tolist(), outp_df['negated_sents'].tolist()):
+        outp_jsonl.append({"original_sent": o, "negated_sent": n})
+
+    save_filename = os.path.join(resource_path, 'exp2_dataset.jsonl')
     if os.path.isfile(save_filename):
         os.remove(save_filename)
-    outp_df.to_csv(save_filename, sep='\t', index=False, encoding='utf-8')
+
+    with open(save_filename, 'w', encoding='utf-8') as saveFile:
+        for line in outp_jsonl:
+            json.dump(line, saveFile)
+            saveFile.write("\n")
+
     print(f"{len(outp_df)} sentences are generated")
 
 
