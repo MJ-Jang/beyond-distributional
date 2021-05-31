@@ -38,7 +38,7 @@ import typing
 import json
 import os
 import re
-import pandas as pd
+import argparse
 import sys
 sys.path.append('..')
 from nltk.stem.wordnet import WordNetLemmatizer
@@ -46,7 +46,9 @@ from util import spacy_postag, extract_verbs, cn_api_for
 from tqdm import tqdm
 
 resource_path = '../resources'
-TGT_RELATIONS = ["IsA", "CapableOf", "PartOf", "HasA", "UsedFor", "NotDesires", "MadeOf", "HasProperty"]
+TGT_RELATIONS = ["IsA", "CapableOf", "PartOf", "HasA", "UsedFor", "NotDesires", "MadeOf"]
+# Some relations are not appropriate because a negated sentence and original sentence are not always mutually exclusive
+# ex. HasProperty: both "Some adults are immature" and "Some adults aren't immature" can be true
 file_path = os.path.join(resource_path, 'test.jsonl')
 
 
@@ -75,6 +77,14 @@ def negate_verb(verb: typing.Text, tag: typing.Text):
 
 
 def negate_cn_sentence(sent: typing.Text):
+    # if a sentence is a negation
+    pattern_neg = re.compile("\snot\s|n't\s")
+    # only one negation
+    if pattern_neg.findall(sent) and len(pattern_neg.findall(sent)) == 1:
+        negated_sent = pattern_neg.sub(' ', sent)
+        return negated_sent
+
+    # if a sentence is not a negation
     tags_ = spacy_postag(sent)
     verbs_ = extract_verbs(tags_)
 
@@ -119,16 +129,53 @@ def extract_and_transform_data(data: typing.List[typing.Dict]):
     return outp
 
 
-def process_lama_negation():
+def process_lama_negation(args):
     data = load_data(file_path)
     data_for_use = extract_and_transform_data(data)
     print(f"Extracted: {len(data_for_use)}")
+
+    # build partial KG dictionary for experiment
+    if args.build_new_kg:
+        kg_dict = {}
+        all_ext_objects = []
+        for d in tqdm(data_for_use, desc='constructing partial Conceptnet KG'):
+            sub_ = d['word']
+            relation_ = d['relation']
+            if not kg_dict.get(sub_):
+                kg_dict[sub_] = {}
+            tokens_, weights_ = cn_api_for(sub_, relation_)
+            kg_dict[sub_][relation_] = {
+                "tokens": tokens_,
+                "weights": weights_
+            }
+            all_ext_objects += tokens_
+
+        # extract object of DistinctFrom relation for all extracted objects (to use baseline for experiment 2)
+        all_ext_objects = list(set(all_ext_objects))
+        for ext_obj_ in tqdm(all_ext_objects, "Extracting DistinctFrom objects"):
+            tokens_, weights_ = cn_api_for(ext_obj_, 'DistinctFrom')
+            if tokens_:
+                if not kg_dict.get(ext_obj_):
+                    kg_dict[ext_obj_] = {}
+                kg_dict[ext_obj_]['DistinctFrom'] = {
+                    "tokens": tokens_,
+                    "weights": weights_
+                }
+        # save
+        kg_path = '../conceptnet_partial.json'
+        with open(kg_path, 'w', encoding='utf-8') as saveFile:
+            json.dump(kg_dict, saveFile)
+    else:
+        kg_path = '../conceptnet_partial.json'
+        assert os.path.isfile(kg_path)
+        with open(kg_path, 'r', encoding='utf-8') as loadFile:
+            kg_dict = json.load(loadFile)
 
     # get wrong_predictions from ConceptNet API
     for d in tqdm(data_for_use):
         word_ = d['word']
         relation_ = d['relation']
-        tokens_, _ = cn_api_for(word_, relation_)
+        tokens_ = kg_dict[word_][relation_]['tokens']
         d['wrong_prediction'] = tokens_
 
     # save as jsonl for consistency in data format
@@ -140,4 +187,11 @@ def process_lama_negation():
 
 
 if __name__ == '__main__':
-    process_lama_negation()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--build_new_kg', type=bool, default=False,
+                        help='build new partial Conceptnet KG or not')
+
+    args = parser.parse_args()
+
+    process_lama_negation(args)
