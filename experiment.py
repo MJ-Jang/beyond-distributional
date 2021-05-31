@@ -346,7 +346,7 @@ class ExperimentOperator:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # neccesary
-    parser.add_argument('--experiment_type', type=int, default=2, choices=[1,2],
+    parser.add_argument('--experiment_type', type=int, default=1, choices=[1,2],
                         help='experiment number')
     # path
     parser.add_argument('--resource_dir', type=str, default='resources',
