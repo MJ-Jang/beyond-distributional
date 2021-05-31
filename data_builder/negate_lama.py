@@ -37,11 +37,12 @@ __status__ = "Development"
 import typing
 import json
 import os
+import re
 import pandas as pd
 import sys
 sys.path.append('..')
 from nltk.stem.wordnet import WordNetLemmatizer
-from util import spacy_postag, extract_verbs
+from util import spacy_postag, extract_verbs, cn_api_for
 from tqdm import tqdm
 
 resource_path = '../resources'
@@ -55,12 +56,6 @@ def load_data(file_path: typing.Text) -> typing.List:
         for line in f:
             data.append(json.loads(line))
     return data
-
-
-def extract_subject_object(data: typing.List):
-    sub_ = [d['sub'] for d in data if d.get('sub')]
-    obj_ = [d['obj_label'] for d in data]
-    return list(set(sub_ + obj_))
 
 
 def negate_verb(verb: typing.Text, tag: typing.Text):
@@ -79,54 +74,69 @@ def negate_verb(verb: typing.Text, tag: typing.Text):
         return "don't " + verb
 
 
-def negate_cn_sentences(sents: typing.List):
-    original_sents, negate_sents = [], []
-    for sent_ in tqdm(sents):
-        tags_ = spacy_postag(sent_)
-        verbs_ = extract_verbs(tags_)
+def negate_cn_sentence(sent: typing.Text):
+    tags_ = spacy_postag(sent)
+    verbs_ = extract_verbs(tags_)
 
-        # negate sentence where only one verb appears
-        if len(verbs_) == 1:
-            original_sents.append(sent_)
+    # negate sentence where only one verb appears
+    if len(verbs_) == 1:
+        verb_, v_tag_ = str(verbs_[0][0]), verbs_[0][1]
+        neg_verb_ = negate_verb(verb_, v_tag_)
+        negated_sent = sent.replace(verb_, neg_verb_).strip()
+    else:
+        negated_sent = ''
 
-            verb_, v_tag_ = str(verbs_[0][0]), verbs_[0][1]
-            neg_verb_ = negate_verb(verb_, v_tag_)
-            negate_sents.append(sent_.replace(verb_, neg_verb_).strip())
+    return negated_sent
 
-    return original_sents, negate_sents
+
+def extract_and_transform_data(data: typing.List[typing.Dict]):
+    pattern_only_num = re.compile('\d+')
+    outp = []
+    for i, d_ in enumerate(tqdm(data)):
+        relation_ = d_['pred']
+        if relation_ in TGT_RELATIONS:
+            sub_ = d_['sub'] if d_.get('sub') else d_['sub_label']
+            if pattern_only_num.findall(sub_) and pattern_only_num.findall(sub_)[0] == sub_:
+                continue
+
+            sent_ = d_['masked_sentences'][0]
+            negated_sent_ = negate_cn_sentence(sent_)
+
+            if not negated_sent_:
+                continue
+
+            # set original sent as opposite sent since we cant find wrong_predictions of negated sents
+            inst_ = {
+                    "word": sub_,
+                    "input_sent": negated_sent_,
+                    "opposite_sent": sent_,
+                    "relation": relation_
+                }
+            if inst_ in outp:
+                continue
+            else:
+                outp.append(inst_)
+    return outp
 
 
 def process_lama_negation():
     data = load_data(file_path)
-    outp = [d for d in data if d['pred'] in TGT_RELATIONS]
-    sents = [o['masked_sentences'][0] for o in outp]
-    print(f"Extracted: {len(sents)} | Unique: {len(list(set(sents)))}")
-    original_sents, negated_sents = negate_cn_sentences(list(set(sents)))
+    data_for_use = extract_and_transform_data(data)
+    print(f"Extracted: {len(data_for_use)}")
 
-    outp_df = pd.DataFrame(
-        {
-            "original_sents": original_sents,
-            "negated_sents": negated_sents
-        }
-    )
-    # remove duplicates
-    outp_df = outp_df.drop_duplicates()
+    # get wrong_predictions from ConceptNet API
+    for d in tqdm(data_for_use):
+        word_ = d['word']
+        relation_ = d['relation']
+        tokens_, _ = cn_api_for(word_, relation_)
+        d['wrong_prediction'] = tokens_
 
     # save as jsonl for consistency in data format
-    outp_jsonl = []
-    for o, n in zip(outp_df['original_sents'].tolist(), outp_df['negated_sents'].tolist()):
-        outp_jsonl.append({"original_sent": o, "negated_sent": n})
-
     save_filename = os.path.join(resource_path, 'exp2_dataset.jsonl')
-    if os.path.isfile(save_filename):
-        os.remove(save_filename)
-
     with open(save_filename, 'w', encoding='utf-8') as saveFile:
-        for line in outp_jsonl:
+        for line in data_for_use:
             json.dump(line, saveFile)
             saveFile.write("\n")
-
-    print(f"{len(outp_df)} sentences are generated")
 
 
 if __name__ == '__main__':

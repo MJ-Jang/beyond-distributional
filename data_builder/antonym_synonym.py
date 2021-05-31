@@ -180,12 +180,14 @@ def extract_words(sents: typing.List, min_cnt:int=1):
 
 def generate_sentences(thesarsus):
     # 3. generate template-based sentences
-    words, input_sents, wrong_predictions, pos_tags = list(), list(), list(), list()
+    words, input_sents, wrong_predictions, pos_tags, opposite_sents = list(), list(), list(), list(), list()
     for word in thesarsus.keys():
         # If the word has synonym, use antonym-template to generate inputs.
         # If the model predicts synonyms or hypernyms as predictions, this is a wrong behaviour
         if thesarsus[word].get('synonym'):
             ant_sents_ = [t.replace('X', word) for t in ANTONYM_TEMPLATE]
+            opposite_sents_ = [t.replace('X', word) for t in SYNONUM_TEMPLATE]
+
             # add the word itself and it's plural form because it is definitely not an antonym
             if thesarsus[word].get('hypernym'):
                 wrong_prediction_ = [thesarsus[word].get('synonym')['tokens'] +
@@ -200,17 +202,21 @@ def generate_sentences(thesarsus):
             wrong_predictions += wrong_prediction_
             words += [word] * len(ant_sents_)
             pos_tags += [thesarsus[word].get('tag')] * len(ant_sents_)
+            opposite_sents += opposite_sents_
 
         # If the word has antonym, use synonym-template to generate inputs.
         # If the model predicts antonyms as predictions, this is a wrong behaviour
         if thesarsus[word].get('antonym'):
             syn_sents_ = [t.replace('X', word) for t in SYNONUM_TEMPLATE]
+            opposite_sents_ = [t.replace('X', word) for t in ANTONYM_TEMPLATE]
+
             wrong_prediction_ = [thesarsus[word].get('antonym')['tokens']] * len(syn_sents_)
 
             input_sents += syn_sents_
             wrong_predictions += wrong_prediction_
             words += [word] * len(syn_sents_)
             pos_tags += [thesarsus[word].get('tag')] * len(syn_sents_)
+            opposite_sents += opposite_sents_
 
     assert len(input_sents) == len(wrong_predictions)
     assert len(input_sents) == len(words)
@@ -222,6 +228,7 @@ def generate_sentences(thesarsus):
             "input_sent": input_sents[i],
             "wrong_prediction": wrong_predictions[i],
             "pos_tag": pos_tags[i],
+            "opposite_sent": opposite_sents[i]
         }
         if instance_['wrong_prediction']:
             # sometimes the word has weight but no following words (need to check)

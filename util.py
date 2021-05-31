@@ -68,7 +68,8 @@ def extract_verbs(
 
 def cn_api_for(word: typing.Text, relation: typing.Text, weight_threshold: float = 1.0):
 
-    assert relation in ['Antonym', 'DistinctFrom', 'HasA', 'IsA', 'Synonym']
+    assert relation in ['Antonym', 'HasA', 'IsA', 'Synonym', "CapableOf", "PartOf",
+                        "UsedFor", "NotDesires", "MadeOf", "HasProperty"]
     rm_pattern = re.compile('a |A |an |An |')
     try:
         response = requests.get(f'http://api.conceptnet.io/query?start=/c/en/{word}&rel=/r/{relation}&limit=1000')
