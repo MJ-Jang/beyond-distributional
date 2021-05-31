@@ -142,9 +142,9 @@ def evaluate_plm(preds: typing.List[typing.Dict], data: typing.List[typing.Dict]
         result_dict['W_HR@3'].append(top3_res_['w_hr'])
         result_dict['HR@5'].append(top5_res_['hr'])
         result_dict['W_HR@5'].append(top5_res_['w_hr'])
-        if 'antonym' in input_sent_:
+        if 'antonym' in input_sent_.lower():
             result_dict['question_type'].append('ask_antonym')
-        if 'antonym' in input_sent_:
+        if 'synonym' in input_sent_.lower():
             result_dict['question_type'].append('ask_synonym')
         result_dict['pos_tag'].append(pos_tag_)
 
