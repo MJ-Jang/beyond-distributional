@@ -152,7 +152,7 @@ def process_lama_negation(args):
 
         # extract object of DistinctFrom relation for all extracted objects (to use baseline for experiment 2)
         all_ext_objects = list(set(all_ext_objects))
-        for ext_obj_ in tqdm(all_ext_objects, "Extracting DistinctFrom objects"):
+        for ext_obj_ in tqdm(all_ext_objects, "Extracting DistinctFrom/Antonym objects"):
             tokens_, weights_ = cn_api_for(ext_obj_, 'DistinctFrom')
             if tokens_:
                 if not kg_dict.get(ext_obj_):
@@ -161,6 +161,16 @@ def process_lama_negation(args):
                     "tokens": tokens_,
                     "weights": weights_
                 }
+
+            tokens_, weights_ = cn_api_for(ext_obj_, 'Antonym')
+            if tokens_:
+                if not kg_dict.get(ext_obj_):
+                    kg_dict[ext_obj_] = {}
+                kg_dict[ext_obj_]['Antonym'] = {
+                    "tokens": tokens_,
+                    "weights": weights_
+                }
+
         # save
         kg_path = '../conceptnet_partial.json'
         with open(kg_path, 'w', encoding='utf-8') as saveFile:
@@ -189,7 +199,7 @@ def process_lama_negation(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--build_new_kg', type=bool, default=False,
+    parser.add_argument('--build_new_kg', type=bool, default=True,
                         help='build new partial Conceptnet KG or not')
 
     args = parser.parse_args()

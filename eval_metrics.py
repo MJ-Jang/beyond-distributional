@@ -65,7 +65,7 @@ def top_hitrate(pred: typing.List, pred_score: typing.List, target: typing.List,
 def jaccard_similarity(list1, list2):
     intersection = set(list1).intersection(set(list2))
     union = set(list1).union(set(list2))
-    return len(intersection) / len(union)
+    return len(intersection) / (len(union) + 1e-6)
 
 
 def cosine_similarity(words1, words2, scores1, scores2, const_weight: bool = False):
