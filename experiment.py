@@ -88,8 +88,15 @@ class ExperimentOperator:
         # 1 Load data
         data = self.load_data(args.resource_dir, experiment_type=experiment_type)
 
-        input_sents = [d['input_sent'].replace('Y', self.mask_token) for d in data]
-        opposite_sents = [d['opposite_sent'].replace('Y', self.mask_token) for d in data]
+        if experiment_type == 1:
+            input_sents = [d['input_sent'].replace('Y', self.mask_token) for d in data]
+            opposite_sents = [d['opposite_sent'].replace('Y', self.mask_token) for d in data]
+        elif experiment_type == 2:
+            input_sents = [d['input_sent'].replace('[MASK]', self.mask_token) for d in data]
+            opposite_sents = [d['opposite_sent'].replace('[MASK]', self.mask_token) for d in data]
+        else:
+            raise NotImplementedError
+
         wrong_predictions = [d['wrong_prediction'] for d in data]
         pos_tags = [d['pos_tag'] for d in data] if experiment_type == 1 else None
         relations = [d['relation'] for d in data] if experiment_type == 2 else None
@@ -256,7 +263,9 @@ class ExperimentOperator:
             result_dict[key] = value
         for key, value in result_similarity.items():
             result_dict[key] = value
-        result_dict['question_type'] = ['ask_antonym' if 'antonym' in s else 'ask_synonym' for s in input_sents]
+
+        result_dict['question_type'] = ['ask_antonym' if 'antonym' in s.lower()
+                                        else 'ask_synonym' for s in input_sents]
         result_dict['pos_tag'] = pos_tags
 
         # 2. calculate statistics of metrics:
