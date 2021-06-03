@@ -199,7 +199,7 @@ def process_lama_negation(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--build_new_kg', type=bool, default=True,
+    parser.add_argument('--build_new_kg', type=bool, default=False,
                         help='build new partial Conceptnet KG or not')
 
     args = parser.parse_args()

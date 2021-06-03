@@ -136,7 +136,7 @@ class ExperimentOperator:
             data[i]["prediction"] = ip_
             data[i]["opposite_prediction"] = op_
 
-        os.makedirs(args.save_dir, exist_ok=True)
+        os.makedirs(save_dir, exist_ok=True)
         result_file_name = os.path.join(save_dir, f"{args.model_type}-result.yaml")
         pred_file_name = os.path.join(save_dir, f"{args.model_type}-prediction.json")
 
