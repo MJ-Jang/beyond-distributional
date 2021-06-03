@@ -226,7 +226,7 @@ def generate_sentences(thesarsus):
         instance_ = {
             "word": words[i],
             "input_sent": input_sents[i],
-            "wrong_prediction": wrong_predictions[i],
+            "wrong_prediction": list(set(wrong_predictions[i])),
             "pos_tag": pos_tags[i],
             "opposite_sent": opposite_sents[i]
         }

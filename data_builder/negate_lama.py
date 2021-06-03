@@ -186,7 +186,7 @@ def process_lama_negation(args):
         word_ = d['word']
         relation_ = d['relation']
         tokens_ = kg_dict[word_][relation_]['tokens']
-        d['wrong_prediction'] = tokens_
+        d['wrong_prediction'] = list(set(tokens_))
 
     # save as jsonl for consistency in data format
     save_filename = os.path.join(resource_path, 'exp2_dataset.jsonl')
