@@ -40,12 +40,12 @@ import os
 import re
 import argparse
 import sys
-sys.path.append('..')
+sys.path.append('../src/')
 from nltk.stem.wordnet import WordNetLemmatizer
-from util import spacy_postag, extract_verbs, cn_api_for
+from utils import spacy_postag, extract_verbs, cn_api_for
 from tqdm import tqdm
 
-resource_path = '../resources'
+resource_path = 'resources'
 TGT_RELATIONS = ["IsA", "CapableOf", "PartOf", "HasA", "UsedFor", "NotDesires", "MadeOf"]
 # Some relations are not appropriate because a negated sentence and original sentence are not always mutually exclusive
 # ex. HasProperty: both "Some adults are immature" and "Some adults aren't immature" can be true
@@ -172,11 +172,11 @@ def process_lama_negation(args):
                 }
 
         # save
-        kg_path = '../conceptnet_partial.json'
+        kg_path = 'conceptnet_partial.json'
         with open(kg_path, 'w', encoding='utf-8') as saveFile:
             json.dump(kg_dict, saveFile)
     else:
-        kg_path = '../conceptnet_partial.json'
+        kg_path = 'conceptnet_partial.json'
         assert os.path.isfile(kg_path)
         with open(kg_path, 'r', encoding='utf-8') as loadFile:
             kg_dict = json.load(loadFile)
@@ -189,7 +189,7 @@ def process_lama_negation(args):
         d['wrong_prediction'] = list(set(tokens_))
 
     # save as jsonl for consistency in data format
-    save_filename = os.path.join(resource_path, 'exp2_dataset.jsonl')
+    save_filename = 'exp2_dataset.jsonl'
     with open(save_filename, 'w', encoding='utf-8') as saveFile:
         for line in data_for_use:
             json.dump(line, saveFile)

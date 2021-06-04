@@ -39,14 +39,14 @@ import typing
 import json
 import argparse
 import sys
-sys.path.append('..')
+sys.path.append('../src/')
 from textblob import TextBlob
-from util import cn_api_for
 from tqdm import tqdm
-from util import spacy_postag
 from collections import Counter
+from utils import cn_api_for, spacy_postag
 
-resource_path = '../resources'
+
+resource_path = 'resources'
 
 ANTONYM_TEMPLATE = ['X is an antonym of Y.', 'An antonym of Y is X.']
 SYNONUM_TEMPLATE = ['X is a synonym of Y.', 'A synonym of Y is X.']
@@ -234,7 +234,7 @@ def generate_sentences(thesarsus):
             # sometimes the word has weight but no following words (need to check)
             outp.append(instance_)
 
-    save_filename = os.path.join(resource_path, 'exp1_dataset.jsonl')
+    save_filename = 'exp1_dataset.jsonl'
     if os.path.isfile(save_filename):
         os.remove(save_filename)
     with open(save_filename, 'w', encoding='utf-8') as saveFile:
@@ -259,7 +259,8 @@ def main(args):
     test_sents = extract_sents_from_snli(test)
 
     # 2. build thesarsus and back-up
-    thesarsus_path = '../cn_thesaursus.json'
+    os.makedirs('output', exist_ok=True)
+    thesarsus_path = 'cn_thesaursus.json'
     if os.path.isfile(thesarsus_path):
         with open(thesarsus_path, 'r', encoding='utf-8') as loadFile:
             thesarsus = json.load(loadFile)
@@ -272,7 +273,7 @@ def main(args):
         word_dict = extract_words(train_sents + dev_sents + test_sents, min_cnt=args.min_cnt)
         thesarsus = build_thesarsus(word_dict, thesarsus)
 
-        with open('../cn_thesaursus.json', 'w', encoding='utf-8') as saveFile:
+        with open('cn_thesaursus.json', 'w', encoding='utf-8') as saveFile:
             json.dump(thesarsus, saveFile)
     # 3. generate template-based sentences
     generate_sentences(thesarsus)
