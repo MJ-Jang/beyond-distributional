@@ -39,65 +39,74 @@ import os
 import pandas as pd
 import numpy as np
 
-dir_path = 'output'
-exp_path = 'exp1'
-
 model_list = ['baseline', 'bert-base', 'albert-base', 'roberta-base', 'electra-small',
               'bert-large', 'albert-large', 'roberta-large', 'electra-large']
 
-# Average results for each model
-all_output_dict = {
-    "model_name": model_list
-}
+dir_path_list = ['exp1', 'exp2']
 
-category_output_dict = {
-}
 
-for m in model_list:
-    # load result
-    with open(os.path.join(dir_path, exp_path, f"{m}-result.yaml"), 'r') as loadFile:
-        data = yaml.load(loadFile, Loader=yaml.SafeLoader)
+def process_summary(dir_path):
+    all_output_dict = {
+        "model_name": model_list
+    }
 
-    # all result summary
-    for key, value in data['All'].items():
-        new_key = key.replace("avg_", "")
-        if all_output_dict.get(new_key) is None:
-            all_output_dict[new_key] = [value]
-        else:
-            all_output_dict[new_key].append(value)
+    category_output_dict = {
+    }
 
-    # category result
-    if m == 'baseline':
-        continue
+    for m in model_list:
+        # load result
+        with open(os.path.join(dir_path, f"{m}-result.yaml"), 'r') as loadFile:
+            data = yaml.load(loadFile, Loader=yaml.SafeLoader)
 
-    for key in data.keys():
-        if key == 'All':
-            continue
-        if key not in category_output_dict.keys():
-            category_output_dict[key] = {}
-
-        for metric_key, value in data[key].items():
-            new_key = metric_key.replace("avg_", "")
-            if category_output_dict[key].get(new_key) is None:
-                category_output_dict[key][new_key] = [value]
+        # all result summary
+        for key, value in data['All'].items():
+            new_key = key.replace("avg_", "")
+            if all_output_dict.get(new_key) is None:
+                all_output_dict[new_key] = [value]
             else:
-                category_output_dict[key][new_key].append(value)
+                all_output_dict[new_key].append(value)
 
-# transform category_output_dict
-category_outp_new = {
-    'category': []
-}
-for key in category_output_dict.keys():
-    category_outp_new['category'].append(key)
-    for metric_key, value in category_output_dict[key].items():
-        if category_outp_new.get(metric_key):
-            category_outp_new[metric_key].append(np.mean(value))
-        else:
-            category_outp_new[metric_key] = [np.mean(value)]
+        # category result
+        if m == 'baseline':
+            continue
+
+        for key in data.keys():
+            if key == 'All':
+                continue
+            if key not in category_output_dict.keys():
+                category_output_dict[key] = {}
+
+            for metric_key, value in data[key].items():
+                new_key = metric_key.replace("avg_", "")
+                if category_output_dict[key].get(new_key) is None:
+                    category_output_dict[key][new_key] = [value]
+                else:
+                    category_output_dict[key][new_key].append(value)
+
+    # transform category_output_dict
+    category_outp_new = {
+        'category': []
+    }
+    for key in category_output_dict.keys():
+        category_outp_new['category'].append(key)
+        for metric_key, value in category_output_dict[key].items():
+            if category_outp_new.get(metric_key):
+                category_outp_new[metric_key].append(np.mean(value))
+            else:
+                category_outp_new[metric_key] = [np.mean(value)]
+    return all_output_dict, category_outp_new
 
 
-all_df = pd.DataFrame(all_output_dict)
-category_df = pd.DataFrame(category_outp_new)
+def main():
+    for dir_path in dir_path_list:
+        all_dict, category_dict = process_summary(dir_path)
 
-all_df.to_csv(os.path.join(dir_path, exp_path, 'all_result.tsv'), sep='\t')
-category_df.to_csv(os.path.join(dir_path, exp_path, 'category_result.tsv'), sep='\t')
+        all_df = pd.DataFrame(all_dict)
+        category_df = pd.DataFrame(category_dict)
+
+        all_df.to_csv(os.path.join(f'{dir_path}_all_result.tsv'), sep='\t')
+        category_df.to_csv(os.path.join(f'{dir_path}_category_result.tsv'), sep='\t')
+
+
+if __name__ == '__main__':
+    main()
