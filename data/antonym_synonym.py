@@ -48,10 +48,14 @@ from utils import cn_api_for, spacy_postag
 
 resource_path = 'resources'
 
-ANTONYM_TEMPLATE = ['X is an antonym of Y.', 'An antonym of Y is X.', "X is the opposite of Y.",
-                    "X is different than Y."]
-SYNONUM_TEMPLATE = ['X is a synonym of Y.', 'A synonym of Y is X.', "X is the same as Y.",
-                    "X is a rephrasing of Y."]
+# ANTONYM_TEMPLATE = ['X is an antonym of Y.', 'An antonym of Y is X.', "X is the opposite of Y.",
+#                     "X is different than Y."]
+# SYNONUM_TEMPLATE = ['X is a synonym of Y.', 'A synonym of Y is X.', "X is the same as Y.",
+#                     "X is a rephrasing of Y."]
+
+
+ANTONYM_TEMPLATE = ['X is an antonym of Y.', 'An antonym of Y is X.']
+SYNONUM_TEMPLATE = ['X is a synonym of Y.', 'A synonym of Y is X.']
 
 
 def load_snli(file_path: typing.Text) -> typing.List:
