@@ -180,7 +180,8 @@ def extract_words(sents: typing.List, min_cnt:int=1):
 
 def generate_sentences(thesarsus):
     # 3. generate template-based sentences
-    words, input_sents, wrong_predictions, pos_tags, opposite_sents = list(), list(), list(), list(), list()
+    words, input_sents, wrong_predictions, pos_tags, opposite_sents, templates =\
+        list(), list(), list(), list(), list(), list()
     for word in thesarsus.keys():
         # If the word has synonym, use antonym-template to generate inputs.
         # If the model predicts synonyms or hypernyms as predictions, this is a wrong behaviour
@@ -199,6 +200,7 @@ def generate_sentences(thesarsus):
                                     * len(ant_sents_)
 
             input_sents += ant_sents_
+            templates += ANTONYM_TEMPLATE
             wrong_predictions += wrong_prediction_
             words += [word] * len(ant_sents_)
             pos_tags += [thesarsus[word].get('tag')] * len(ant_sents_)
@@ -213,6 +215,7 @@ def generate_sentences(thesarsus):
             wrong_prediction_ = [thesarsus[word].get('antonym')['tokens']] * len(syn_sents_)
 
             input_sents += syn_sents_
+            templates += SYNONUM_TEMPLATE
             wrong_predictions += wrong_prediction_
             words += [word] * len(syn_sents_)
             pos_tags += [thesarsus[word].get('tag')] * len(syn_sents_)
@@ -228,7 +231,8 @@ def generate_sentences(thesarsus):
             "input_sent": input_sents[i],
             "wrong_prediction": list(set(wrong_predictions[i])),
             "pos_tag": pos_tags[i],
-            "opposite_sent": opposite_sents[i]
+            "opposite_sent": opposite_sents[i],
+            "template": templates[i]
         }
         if instance_['wrong_prediction']:
             # sometimes the word has weight but no following words (need to check)
