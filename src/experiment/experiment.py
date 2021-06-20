@@ -268,8 +268,12 @@ class ExperimentOperator:
         for key, value in result_similarity.items():
             result_dict[key] = value
 
-        result_dict['question_type'] = ['ask_antonym' if 'antonym' in s.lower()
-                                        else 'ask_synonym' for s in input_sents]
+        ANTONYM_TEMPLATE = ['X is an antonym of Y.', "X is the opposite of Y.", "X is different than Y."]
+        SYNONUM_TEMPLATE = ['X is a synonym of Y.', "X is the same as Y.", "X is a rephrasing of Y."]
+
+        result_dict['question_type'] = ['ask_antonym' if temp_ in ANTONYM_TEMPLATE else 'ask_synonym'
+                                        for temp_ in templates]
+
         result_dict['pos_tag'] = pos_tags
         result_dict['templates'] = templates
 
@@ -304,7 +308,7 @@ class ExperimentOperator:
         # adj_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adjective']
         # adv_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adverb']
 
-        for key, value in result_dict.items():
+        for key, value in tqdm(result_dict.items(), desc="Summarising statistics according to categories..."):
             # only take evaluation metrics
             if 'HR' in key or key in ['jaccard', 'const_cos', 'cos']:
                 output_metric_dict['All'][f'avg_{key}'] = float(np.mean(value))
