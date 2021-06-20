@@ -101,7 +101,7 @@ class ExperimentOperator:
 
         wrong_predictions = [d['wrong_prediction'] for d in data]
         pos_tags = [d['pos_tag'] for d in data] if experiment_type == 1 else None
-        templates = [d['templates'] for d in data] if experiment_type == 1 else None
+        templates = [d['template'] for d in data] if experiment_type == 1 else None
         relations = [d['relation'] for d in data] if experiment_type == 2 else None
 
         # 2. Inference
@@ -303,7 +303,7 @@ class ExperimentOperator:
             output_metric_dict[temp_] = {}
         for temp_ in unique_temp:
             index_dict[temp_] = [i for i, t in enumerate(result_dict['templates']) if t == temp_]
-
+        
         # noun_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Noun']
         # adj_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adjective']
         # adv_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adverb']
@@ -313,8 +313,8 @@ class ExperimentOperator:
             if 'HR' in key or key in ['jaccard', 'const_cos', 'cos']:
                 output_metric_dict['All'][f'avg_{key}'] = float(np.mean(value))
 
-                for relation_, index_ in index_dict.items():
-                    output_metric_dict[relation_][f'avg_{key}'] = float(
+                for key_, index_ in index_dict.items():
+                    output_metric_dict[key_][f'avg_{key}'] = float(
                         np.mean([r for i, r in enumerate(result_dict[key])
                                  if i in index_]))
                 #
