@@ -101,6 +101,7 @@ class ExperimentOperator:
 
         wrong_predictions = [d['wrong_prediction'] for d in data]
         pos_tags = [d['pos_tag'] for d in data] if experiment_type == 1 else None
+        templates = [d['templates'] for d in data] if experiment_type == 1 else None
         relations = [d['relation'] for d in data] if experiment_type == 2 else None
 
         # 2. Inference
@@ -118,7 +119,8 @@ class ExperimentOperator:
                 result_hitrate,
                 result_similarity,
                 input_sents=input_sents,
-                pos_tags=pos_tags
+                pos_tags=pos_tags,
+                templates=templates
             )
             save_dir = os.path.join(args.save_dir, 'exp1')
 
