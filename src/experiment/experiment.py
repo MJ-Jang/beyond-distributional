@@ -257,9 +257,9 @@ class ExperimentOperator:
             result_similarity: typing.Dict,
             input_sents: typing.List,
             pos_tags: typing.List,
+            templates: typing.List
     ) -> typing.Dict:
         # 1. merge and update result dict
-
         result_dict = {}
         for key, value in result_hitrate.items():
             result_dict[key] = value
@@ -269,39 +269,62 @@ class ExperimentOperator:
         result_dict['question_type'] = ['ask_antonym' if 'antonym' in s.lower()
                                         else 'ask_synonym' for s in input_sents]
         result_dict['pos_tag'] = pos_tags
+        result_dict['templates'] = templates
 
         # 2. calculate statistics of metrics:
         output_metric_dict = {
             "All": {},
-            "Ask_Antonym": {},
-            "Ask_Synonym": {},
-            "Noun": {},
-            "Adjective": {},
-            "Adverb": {}
+            "ask_antonym": {},
+            "ask_synonym": {},
         }
 
-        synonym_idx = [i for i, t in enumerate(result_dict['question_type']) if t == 'ask_synonym']
-        antonym_idx = [i for i, t in enumerate(result_dict['question_type']) if t == 'ask_antonym']
-        noun_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Noun']
-        adj_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adjective']
-        adv_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adverb']
+        index_dict = {
+            "ask_antonym": [i for i, t in enumerate(result_dict['question_type']) if t == 'ask_antonym'],
+            "ask_synonym": [i for i, t in enumerate(result_dict['question_type']) if t == 'ask_synonym']
+        }
+
+        # synonym_idx = [i for i, t in enumerate(result_dict['question_type']) if t == 'ask_synonym']
+        # antonym_idx = [i for i, t in enumerate(result_dict['question_type']) if t == 'ask_antonym']
+
+        unique_tag = list(set(pos_tags))
+        for tag_ in unique_tag:
+            output_metric_dict[tag_] = {}
+        for tag_ in unique_tag:
+            index_dict[tag_] = [i for i, t in enumerate(result_dict['pos_tag']) if t == tag_]
+
+        unique_temp = list(set(templates))
+        for temp_ in unique_temp:
+            output_metric_dict[temp_] = {}
+        for temp_ in unique_temp:
+            index_dict[temp_] = [i for i, t in enumerate(result_dict['templates']) if t == temp_]
+
+        # noun_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Noun']
+        # adj_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adjective']
+        # adv_idx = [i for i, tag in enumerate(result_dict['pos_tag']) if tag == 'Adverb']
 
         for key, value in result_dict.items():
             # only take evaluation metrics
             if 'HR' in key or key in ['jaccard', 'const_cos', 'cos']:
                 output_metric_dict['All'][f'avg_{key}'] = float(np.mean(value))
-                output_metric_dict['Ask_Synonym'][f'avg_{key}'] = float(
-                    np.mean([r for i, r in enumerate(result_dict[key])
-                             if i in synonym_idx]))
-                output_metric_dict['Ask_Antonym'][f'avg_{key}'] = float(
-                    np.mean([r for i, r in enumerate(result_dict[key])
-                             if i in antonym_idx]))
-                output_metric_dict['Noun'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
-                                                                          if i in noun_idx]))
-                output_metric_dict['Adjective'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
-                                                                               if i in adj_idx]))
-                output_metric_dict['Adverb'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
-                                                                            if i in adv_idx]))
+
+                for relation_, index_ in index_dict.items():
+                    output_metric_dict[relation_][f'avg_{key}'] = float(
+                        np.mean([r for i, r in enumerate(result_dict[key])
+                                 if i in index_]))
+                #
+                # output_metric_dict['All'][f'avg_{key}'] = float(np.mean(value))
+                # output_metric_dict['Ask_Synonym'][f'avg_{key}'] = float(
+                #     np.mean([r for i, r in enumerate(result_dict[key])
+                #              if i in synonym_idx]))
+                # output_metric_dict['Ask_Antonym'][f'avg_{key}'] = float(
+                #     np.mean([r for i, r in enumerate(result_dict[key])
+                #              if i in antonym_idx]))
+                # output_metric_dict['Noun'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
+                #                                                           if i in noun_idx]))
+                # output_metric_dict['Adjective'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
+                #                                                                if i in adj_idx]))
+                # output_metric_dict['Adverb'][f'avg_{key}'] = float(np.mean([r for i, r in enumerate(result_dict[key])
+                #                                                             if i in adv_idx]))
         return output_metric_dict
 
     @staticmethod
