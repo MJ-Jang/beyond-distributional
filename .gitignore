@@ -137,5 +137,4 @@ resources/
 __MACOSX
 
 # exp result folder
-exp1/
-exp2/
+*prediction.json
