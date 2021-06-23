@@ -48,7 +48,7 @@ from utils import cn_api_for, spacy_postag
 
 resource_path = 'resources'
 
-ANTONYM_TEMPLATE = ['X is an antonym of Y.', "X is the opposite of Y.", "X is different than Y."]
+ANTONYM_TEMPLATE = ['X is an antonym of Y.', "X is the opposite of Y.", "X is different from Y."]
 SYNONUM_TEMPLATE = ['X is a synonym of Y.', "X is another form of Y.", "X is a rephrasing of Y."]
 
 
