@@ -142,7 +142,7 @@ class ExperimentOperator:
 
         os.makedirs(save_dir, exist_ok=True)
         result_file_name = os.path.join(save_dir, f"{args.model_type}-result.yaml")
-        pred_file_name = os.path.join(save_dir, f"{args.model_type}-prediction.json")
+        pred_file_name = os.path.join(save_dir, f"{args.model_type}-prediction.jsonl")
 
         with open(result_file_name, 'w') as resultFile:
             yaml.dump(summary_output, resultFile, default_flow_style=False, sort_keys=False)
@@ -268,7 +268,7 @@ class ExperimentOperator:
         for key, value in result_similarity.items():
             result_dict[key] = value
 
-        ANTONYM_TEMPLATE = ['X is an antonym of Y.', "X is the opposite of Y.", "X is different than Y."]
+        ANTONYM_TEMPLATE = ['X is an antonym of Y.', "X is the opposite of Y.", "X is different from Y."]
         SYNONUM_TEMPLATE = ['X is a synonym of Y.', "X is the same as Y.", "X is a rephrasing of Y."]
 
         result_dict['question_type'] = ['ask_antonym' if temp_ in ANTONYM_TEMPLATE else 'ask_synonym'
