@@ -64,13 +64,19 @@ def cos_sim(A, B):
 
 def calculate_score(word: Text, preds: Dict, vector_dict: Dict):
     if not preds['tokens']:
-        return False
-    sorted_pred = sorted([[t,w] for t,w in zip(preds['tokens'], preds['weights'])], key=lambda x:x[1], reverse=True)
-    tgt_word = sorted_pred[0][0] # take the word with the highest weight
-
+        return []
     word_vec = vector_dict.get(word)
-    tgt_word_vec = vector_dict.get(tgt_word)
-    return cos_sim(word_vec, tgt_word_vec)
+
+    # sorted_pred = sorted([[t,w] for t,w in zip(preds['tokens'], preds['weights'])], key=lambda x:x[1], reverse=True)
+    # tgt_word = sorted_pred[0][0] # take the word with the highest weight
+    # tgt_word_vec = vector_dict.get(tgt_word)
+    # return cos_sim(word_vec, tgt_word_vec)
+    tokens = preds['tokens']
+    outp = []
+    for t in tokens:
+        tgt_word_vec = vector_dict.get(t)
+        outp.append(cos_sim(word_vec, tgt_word_vec))
+    return outp
 
 
 def generate_statistics(model_name: Text, thesaursus: Dict):
@@ -83,17 +89,17 @@ def generate_statistics(model_name: Text, thesaursus: Dict):
         # 1. synonym
         sim_score = calculate_score(key, value.get('synonym'), vector)
         if sim_score:
-            synonym_sim.append(sim_score)
+            synonym_sim += sim_score
 
         # 2. antonym
         sim_score = calculate_score(key, value.get('antonym'), vector)
         if sim_score:
-            antonym_sim.append(sim_score)
+            antonym_sim += sim_score
 
         # 3. hypernym
         sim_score = calculate_score(key, value.get('hypernym'), vector)
         if sim_score:
-            hypernym_sim.append(sim_score)
+            hypernym_sim += sim_score
 
     # t-test
     _, pvalue_syn_ant = ttest_ind(
