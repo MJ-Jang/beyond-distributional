@@ -7,3 +7,4 @@ transformers==4.2.1
 datasets
 matplotlib
 pyyaml
+scipy
