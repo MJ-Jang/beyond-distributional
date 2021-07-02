@@ -148,6 +148,7 @@ if __name__ == '__main__':
     result_df = pd.DataFrame(result)
     outp_path = '../../output/vector_analysis'
     os.makedirs(outp_path, exist_ok=True)
+    result_df.insert(loc=0, column='models', value=list(pretrain_model_dict.keys()))
     result_df.to_csv(os.path.join(outp_path, 'vector_similarity_result.tsv'), sep='\t', index=False)
 
 

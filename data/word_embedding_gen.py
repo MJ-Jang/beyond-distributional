@@ -48,6 +48,7 @@ class WordVectorGenerator:
     def __init__(self, model_name: Text, device):
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name)
+        self.model.to(device)
         self.special_tokens = [
             self.tokenizer.pad_token_id,
             self.tokenizer.cls_token_id,
