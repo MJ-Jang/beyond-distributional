@@ -268,7 +268,7 @@ class ExperimentOperator:
         for key, value in result_similarity.items():
             result_dict[key] = value
 
-        ANTONYM_TEMPLATE = ['X is an antonym of Y.', "X is the opposite of Y.", "X is different than Y."]
+        ANTONYM_TEMPLATE = ['X is an antonym of Y.', "X is the opposite of Y.", "X is different from Y."]
         SYNONUM_TEMPLATE = ['X is a synonym of Y.', "X is the same as Y.", "X is a rephrasing of Y."]
 
         result_dict['question_type'] = ['ask_antonym' if temp_ in ANTONYM_TEMPLATE else 'ask_synonym'
