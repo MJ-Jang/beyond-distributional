@@ -138,3 +138,4 @@ __MACOSX
 
 # exp result folder
 *prediction.json
+*-vectors.dict
