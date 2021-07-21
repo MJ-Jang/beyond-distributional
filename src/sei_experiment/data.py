@@ -32,3 +32,91 @@ __author__ = "Myeongjun Jang"
 __maintainer__ = "Myeongjun Jang"
 __email__ = "myeongjun.jang@cs.ox.ac.uk"
 __status__ = "Development"
+
+
+import pandas as pd
+import os
+from typing import Text
+from datasets import Dataset, DatasetDict, ClassLabel
+
+
+class SemanticIdentificationDataModule:
+
+    def __init__(
+            self,
+            tokenizer,
+            data_dir_path: Text,
+            is_balanced: bool = True,
+            max_length: int = 32,
+            padding: Text = 'max_length',
+            truncation: Text = 'longest_first'
+    ):
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+        self.padding = padding
+        self.truncation = truncation
+        self.data_dir_path = data_dir_path
+        self.is_balanced = is_balanced
+
+    def __call__(self, *args, **kwargs):
+        dataset = self.load_sei_dataset(self.data_dir_path, self.is_balanced)
+        features_dict = {}
+
+        for phase, phase_dataset in dataset.items():
+            features_dict[phase] = phase_dataset.map(
+                self.convert_to_features,
+                batched=True,
+                load_from_cache_file=False,
+            )
+
+            features_dict[phase].set_format(
+                type="torch",
+                columns=['input_ids', 'attention_mask', 'token_type_ids', 'labels'],
+            )
+
+        return features_dict
+
+    def convert_to_features(self, example_batch):
+        inputs = list(zip(example_batch['word1'], example_batch['word2']))
+        features = self.tokenizer.batch_encode_plus(
+            inputs,
+            max_length=self.max_length,
+            padding='max_length',
+            truncation='longest_first'
+        )
+        features["labels"] = example_batch["label_idx"]
+        return features
+
+    @staticmethod
+    def load_sei_dataset(data_dir_path: Text, use_balanced: bool = True):
+        if use_balanced:
+            train = pd.read_csv(os.path.join(data_dir_path, 'train_balanced.tsv'), sep='\t')
+        else:
+            train = pd.read_csv(os.path.join(data_dir_path, 'train_unbalanced.tsv'), sep='\t')
+        dev = pd.read_csv(os.path.join(data_dir_path, 'dev.tsv'), sep='\t')
+        test = pd.read_csv(os.path.join(data_dir_path, 'test.tsv'), sep='\t')
+
+        train = Dataset.from_dict({key: train[key].tolist() for key in train.keys()})
+        train.features['label'] = ClassLabel(num_classes=2, names=["antonym", "synonym"])
+
+        dev = Dataset.from_dict({key: dev[key].tolist() for key in dev.keys()})
+        dev.features['label'] = ClassLabel(num_classes=2, names=["antonym", "synonym"])
+
+        test = Dataset.from_dict({key: test[key].tolist() for key in test.keys()})
+        test.features['label'] = ClassLabel(num_classes=2, names=["antonym", "synonym"])
+
+        outp_dict = DatasetDict(
+            {
+                "train": train,
+                "validation": dev,
+                "test": test
+            }
+        )
+        return outp_dict
+
+
+# from transformers import AutoTokenizer
+# tokenizer = AutoTokenizer.from_pretrained('google/electra-small-generator')
+# module = SemanticIdentificationDataModule(tokenizer, './data/SEI_data')
+# feature_dict = module()
+# feature_dict['test']

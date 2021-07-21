@@ -1,0 +1,8 @@
+cfg:
+  max_length: 128
+  truncation: longest_first
+  learning_rate: 5e-6
+  batch_size: 64
+  epochs: 10
+  output_dir: "./tmp_model_binary"
+  patience: 3
