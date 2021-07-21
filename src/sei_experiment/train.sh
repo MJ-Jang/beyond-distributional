@@ -1,4 +1,4 @@
-models="electra-small electra-large bert-base bert-large roberta-base roberta-large albert-base albert-large"
+models="electra-large electra-small bert-base bert-large roberta-base roberta-large albert-base albert-large"
 
 for model in $models
 do
