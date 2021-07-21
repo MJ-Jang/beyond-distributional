@@ -116,42 +116,46 @@ def main(args):
     np.random.seed(1234)
     new_syn = np.random.permutation(new_syn)
     
-    if args.equal_train_size:
-        train_syn = new_syn[:len(train_ant)]
-    else:
-        train_syn = new_syn[:-1500]
+    train_syn_balanced = new_syn[:len(train_ant)]
+    train_syn = new_syn[:-1500]
     dev_syn = new_syn[-1500:-1000]
     test_syn = new_syn[-1000:]
 
     # merge antonym and synonym
-    train = train_ant.tolist() + train_syn.tolist()
+    train_balanced = train_ant.tolist() + train_syn_balanced.tolist()
+    train_unbalanced = train_ant.tolist() + train_syn.tolist()
+
     dev = dev_ant.tolist() + dev_syn.tolist()
     test = test_ant.tolist() + test_syn.tolist()
 
-    np.random.shuffle(train)
-    np.random.shuffle(dev)
-    np.random.shuffle(test)
+    np.random.seed(1234)
+    np.random.shuffle(train_unbalanced)
+    np.random.seed(1234)
+    np.random.shuffle(train_balanced)
 
-    print(f"Train | Synonym {len(train_syn)}, Antonym {len(train_ant)}")
+    print(f"Train balanced | Synonym {len(train_syn_balanced)}, Antonym {len(train_ant)}")
+    print(f"Train unbalanced | Synonym {len(train_syn)}, Antonym {len(train_ant)}")
     print(f"Dev | Synonym {len(dev_syn)}, Antonym {len(dev_ant)}")
     print(f"Test | Synonym {len(test_syn)}, Antonym {len(test_ant)}")
 
-    train_df = transform_to_df(train)
+    train_balanced_df = transform_to_df(train_balanced)
+    train_unbalanced_df = transform_to_df(train_unbalanced)
+
     dev_df = transform_to_df(dev)
     test_df = transform_to_df(test)
 
     save_dir = os.path.join(dir_path, 'SEI_data')
     os.makedirs(save_dir, exist_ok=True)
 
-    train_df.to_csv(os.path.join(save_dir, "train.tsv"), sep='\t', index=False, encoding='utf-8')
+    train_balanced_df.to_csv(os.path.join(save_dir, "train_balanced.tsv"), sep='\t', index=False, encoding='utf-8')
+    train_unbalanced_df.to_csv(os.path.join(save_dir, "train_unbalanced.tsv"), sep='\t', index=False, encoding='utf-8')
+
     dev_df.to_csv(os.path.join(save_dir, "dev.tsv"), sep='\t', index=False, encoding='utf-8')
     test_df.to_csv(os.path.join(save_dir, "test.tsv"), sep='\t', index=False, encoding='utf-8')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-
-    parser.add_argument('--equal_train_size', action='store_true')
 
     args = parser.parse_args()
 
