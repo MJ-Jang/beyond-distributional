@@ -115,6 +115,11 @@ def main(args):
     train_dataset = feature_dict['train']
     eval_dataset = feature_dict['validation']
 
+    if 'large' in args.backbone_model_name:
+        batch_size = cfg.get("batch_size_large")
+    else:
+        batch_size = cfg.get("batch_size_base")
+
     trainer = transformers.Trainer(
         model=model,
         args=transformers.TrainingArguments(
@@ -123,8 +128,8 @@ def main(args):
             learning_rate=float(cfg.get('learning_rate')),
             do_train=True,
             num_train_epochs=cfg.get('epochs'),
-            per_device_train_batch_size=cfg.get('batch_size'),
-            per_device_eval_batch_size=cfg.get('batch_size'),
+            per_device_train_batch_size=batch_size,
+            per_device_eval_batch_size=batch_size,
             metric_for_best_model='accuracy',
             load_best_model_at_end=True,
             greater_is_better=True,
