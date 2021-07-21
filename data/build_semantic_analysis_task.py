@@ -143,9 +143,9 @@ def main(args):
     save_dir = os.path.join(dir_path, 'SEI_data')
     os.makedirs(save_dir, exist_ok=True)
 
-    train_df.to_csv(os.path.join(dir_path, "train.tsv"), sep='\t', index=False, encoding='utf-8')
-    dev_df.to_csv(os.path.join(dir_path, "dev.tsv"), sep='\t', index=False, encoding='utf-8')
-    test_df.to_csv(os.path.join(dir_path, "test.tsv"), sep='\t', index=False, encoding='utf-8')
+    train_df.to_csv(os.path.join(save_dir, "train.tsv"), sep='\t', index=False, encoding='utf-8')
+    dev_df.to_csv(os.path.join(save_dir, "dev.tsv"), sep='\t', index=False, encoding='utf-8')
+    test_df.to_csv(os.path.join(save_dir, "test.tsv"), sep='\t', index=False, encoding='utf-8')
 
 
 if __name__ == '__main__':
