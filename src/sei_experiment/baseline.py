@@ -51,8 +51,8 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 
 pretrain_model_dict = {
-    "electra-large": 'google/electra-large-generator',
     "electra-small": "google/electra-small-generator",
+    "electra-large": 'google/electra-large-generator',
     "bert-base": "bert-base-cased",
     "bert-large": "bert-large-cased",
     "roberta-base": "roberta-base",
@@ -76,40 +76,46 @@ class WordVectorGenerator:
 
         self.emb_dim = self.model.config.hidden_size
         self.device = device
+        self.batch_size = 64
 
     def __call__(self, words: List):
-        token_outputs = self.tokenizer(
-            words,
-            truncation=True,
-            padding=True
-        )
-
-        # generate mask
-        mask = []
-        for tokens_ in token_outputs['input_ids']:
-            mask_ = [1 if t not in self.special_tokens else 0 for t in tokens_]
-            mask.append(mask_)
-
-        inputs = {key: torch.LongTensor(value).to(self.device) for key, value in token_outputs.items()}
-        embeds = self.model(**inputs)
-        hidden_reps = embeds[0]
-
-        # transform mask
-        mask_expansion_ = torch.ones([1, self.emb_dim], dtype=torch.float).to(self.device)
-        new_mask = torch.matmul(
-            torch.LongTensor(mask).unsqueeze(-1).type(torch.FloatTensor).to(self.device), mask_expansion_
-        )
-
-        vecs = hidden_reps * new_mask
-
         outp = []
-        for m, v in zip(mask, vecs):
-            if sum(m) == 1:
-                # sing subwords
-                outp.append(v.sum(dim=0).cpu().detach().tolist())
-            else:
-                # multiple subwords - take average (mean pooling)
-                outp.append(v.mean(dim=0).cpu().detach().tolist())
+        for start in range(0, len(words), self.batch_size):
+            batch_words = words[start:start+self.batch_size]
+
+            token_outputs = self.tokenizer(
+                batch_words,
+                truncation=True,
+                padding=True
+            )
+
+            # generate mask
+            mask = []
+            for tokens_ in token_outputs['input_ids']:
+                mask_ = [1 if t not in self.special_tokens else 0 for t in tokens_]
+                mask.append(mask_)
+
+            inputs = {key: torch.LongTensor(value).to(self.device) for key, value in token_outputs.items()}
+            embeds = self.model(**inputs)
+            hidden_reps = embeds[0]
+
+            # transform mask
+            mask_expansion_ = torch.ones([1, self.emb_dim], dtype=torch.float).to(self.device)
+            new_mask = torch.matmul(
+                torch.LongTensor(mask).unsqueeze(-1).type(torch.FloatTensor).to(self.device), mask_expansion_
+            )
+
+            vecs = hidden_reps * new_mask
+
+            outp_ = []
+            for m, v in zip(mask, vecs):
+                if sum(m) == 1:
+                    # sing subwords
+                    outp_.append(v.sum(dim=0).cpu().detach().tolist())
+                else:
+                    # multiple subwords - take average (mean pooling)
+                    outp_.append(v.mean(dim=0).cpu().detach().tolist())
+            outp += outp_
         return outp
 
 
