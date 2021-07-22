@@ -114,9 +114,9 @@ def main(args):
     file_name = f"sei-{model_name}-balanced_{args.is_balanced}-freeze_{args.freeze_enc}.ckpt"
 
     if torch.cuda.is_available():
-        savefile = torch.load(os.path.join(dir_path, file_name))
+        savefile = torch.load(os.path.join(dir_path, args.model_dir, file_name))
     else:
-        savefile = torch.load(os.path.join(dir_path, file_name), map_location=torch.device('cpu'))
+        savefile = torch.load(os.path.join(dir_path, args.model_dir, file_name), map_location=torch.device('cpu'))
     model.load_state_dict(savefile)
     model.eval()
 
@@ -127,7 +127,7 @@ def main(args):
         predictions = inferencer(dataset=pred_dataset)
 
         perf_dict = {}
-        acc = accuracy_score(y_true=pred_dataset['label'], y_pred=predictions)
+        acc = accuracy_score(y_true=pred_dataset['label_idx'], y_pred=predictions)
 
         perf_dict['accuracy'] = acc
         print(f"{args.backbone_model_name}|{data_type}| Accuracy: {acc}")
