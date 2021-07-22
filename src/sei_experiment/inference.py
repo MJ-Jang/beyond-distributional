@@ -139,9 +139,9 @@ def main(args):
         outputs.update(perf_dict)
 
         # Here
-        save_path = os.path.join(dir_path, args.save_dir)
+        save_path = os.path.join(dir_path, args.save_dir, f"{model_name}-balanced_{args.is_balanced}-freeze_{args.freeze_enc}")
         os.makedirs(save_path, exist_ok=True)
-        file_name = f"{model_name}-{data_type}-balanced_{args.is_balanced}-freeze_{args.freeze_enc}.json"
+        file_name = f"{data_type}.json"
         with open(os.path.join(save_path, file_name), 'w') as saveFile:
             json.dump(outputs, saveFile)
 
