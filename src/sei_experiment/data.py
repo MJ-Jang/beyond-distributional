@@ -115,8 +115,8 @@ class SemanticIdentificationDataModule:
         return outp_dict
 
 
-# from transformers import AutoTokenizer
-# tokenizer = AutoTokenizer.from_pretrained('google/electra-small-generator')
-# module = SemanticIdentificationDataModule(tokenizer, './data/SEI_data')
-# feature_dict = module()
-# feature_dict['test']
+if __name__ == '__main__':
+    from transformers import AutoTokenizer
+    tokenizer = AutoTokenizer.from_pretrained('google/electra-small-generator')
+    module = SemanticIdentificationDataModule(tokenizer, './data/SEI_data')
+    feature_dict = module()
