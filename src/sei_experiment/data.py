@@ -68,11 +68,17 @@ class SemanticIdentificationDataModule:
                 batched=True,
                 load_from_cache_file=False,
             )
+            try:
+                features_dict[phase].set_format(
+                    type="torch",
+                    columns=['input_ids', 'attention_mask', 'token_type_ids', 'labels'],
+                )
+            except:
+                features_dict[phase].set_format(
+                    type="torch",
+                    columns=['input_ids', 'attention_mask', 'labels'],
+                )
 
-            features_dict[phase].set_format(
-                type="torch",
-                columns=['input_ids', 'attention_mask', 'token_type_ids', 'labels'],
-            )
 
         return features_dict
 
