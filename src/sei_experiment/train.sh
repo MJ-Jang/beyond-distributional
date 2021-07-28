@@ -1,5 +1,5 @@
-models="electra-large electra-small bert-base bert-large roberta-base roberta-large albert-base albert-large"
-
+#models="electra-large electra-small bert-base bert-large roberta-base roberta-large albert-base albert-large"
+models="roberta-base roberta-large albert-base albert-large"
 for model in $models
 do
     python train.py --backbone_model_name $model --is_balanced

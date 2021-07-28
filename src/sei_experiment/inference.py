@@ -119,8 +119,13 @@ def main(args):
         savefile = torch.load(os.path.join(dir_path, args.model_dir, file_name), map_location=torch.device('cpu'))
     model.load_state_dict(savefile)
     model.eval()
-
-    inferencer = SEIInferencer(model)
+    
+    if 'large' in args.backbone_model_name:
+        batch_size = cfg.get("batch_size_large")
+    else:
+        batch_size = cfg.get("batch_size_base")
+        
+    inferencer = SEIInferencer(model, batch_size=batch_size)
 
     for data_type in ['validation', 'test']:
         pred_dataset = feature_dict[data_type]
