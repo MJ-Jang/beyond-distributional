@@ -1,0 +1,17 @@
+model	val_acc	test_acc
+albert-base-balanced_True-freeze_False	0.841	0.87
+albert-base-balanced_True-freeze_True	0.615	0.6095
+albert-large-balanced_True-freeze_False	0.893	0.909
+albert-large-balanced_True-freeze_True	0.564	0.59
+bert-base-balanced_True-freeze_False	0.85	0.866
+bert-base-balanced_True-freeze_True	0.54	0.559
+bert-large-balanced_True-freeze_False	0.927	0.9315
+bert-large-balanced_True-freeze_True	0.53	0.516
+electra-large-balanced_True-freeze_False	0.842	0.8485
+electra-large-balanced_True-freeze_True	0.658	0.633
+electra-small-balanced_True-freeze_False	0.761	0.775
+electra-small-balanced_True-freeze_True	0.612	0.612
+roberta-base-balanced_True-freeze_False	0.893	0.8905
+roberta-base-balanced_True-freeze_True	0.713	0.7065
+roberta-large-balanced_True-freeze_False	0.94	0.945
+roberta-large-balanced_True-freeze_True	0.703	0.7035
