@@ -126,7 +126,7 @@ def main(args):
             num_train_epochs=cfg.get('epochs'),
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
-            metric_for_best_model='accuracy',
+            metric_for_best_model='f1',
             load_best_model_at_end=True,
             greater_is_better=True,
             evaluation_strategy=transformers.IntervalStrategy('epoch')
