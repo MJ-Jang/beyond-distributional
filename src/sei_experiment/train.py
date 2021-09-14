@@ -96,8 +96,12 @@ def main(args):
         config_file = yaml.load(readFile, Loader=yaml.SafeLoader)
     cfg = config_file.get('cfg')
 
-    tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[args.backbone_model_name])
-    model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[args.backbone_model_name])
+    if args.backbone_model_name in pretrain_model_dict:
+        tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[args.backbone_model_name])
+        model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[args.backbone_model_name])
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(args.backbone_model_name)
+        model = AutoModelForSequenceClassification.from_pretrained(args.backbone_model_name)
 
     if args.freeze_enc:
         model = freeze_encoder(model)
