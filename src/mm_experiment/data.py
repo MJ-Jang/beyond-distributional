@@ -93,7 +93,10 @@ class MeaningMatchingnDataModule:
     def load_mm_dataset(data_dir_path: Text):
         train = pd.read_csv(os.path.join(data_dir_path, 'train.tsv'), sep='\t')
         dev = pd.read_csv(os.path.join(data_dir_path, 'dev.tsv'), sep='\t')
-
+        
+        train = train.dropna()
+        dev = dev.dropna()        
+        
         train = Dataset.from_dict({key: train[key].tolist() for key in train.keys()})
         train.features['label'] = ClassLabel(num_classes=2, names=["False", "True"])
 
