@@ -59,7 +59,8 @@ pretrain_model_dict = {
     "roberta-large": "roberta-large",
     "albert-base": "albert-base-v2",
     "albert-large": "albert-large-v2",
-    "roberta-base-meaning-match": "korca/roberta-base-meaning-match"
+    "roberta-base-meaning-match": "korca/roberta-base-mm",
+    "bert-base-meaning-match": "korca/bert-base-mm-cased"
 }
 
 
