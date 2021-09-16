@@ -58,8 +58,6 @@ pretrain_model_dict = {
     "roberta-large": "roberta-large",
     "albert-base": "albert-base-v2",
     "albert-large": "albert-large-v2",
-    "roberta-base-meaning-match": "korca/roberta-base-mm",
-    "bert-base-meaning-match": "korca/bert-base-mm-cased"
 }
 
 
@@ -101,6 +99,20 @@ def main(args):
     if args.backbone_model_name in pretrain_model_dict:
         tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[args.backbone_model_name])
         model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[args.backbone_model_name])
+    elif "meaning_matching" in args.backbone_model_name:
+        backbone_model = args.backbone_model_name.replace("meaning_matching-", "").split('-')[0]
+
+        tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[backbone_model])
+        model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[backbone_model])
+
+        # load model from binary file
+        dir_path = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(dir_path, "../mm_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
+
+        if backbone_model.startswith("roberta"):
+            model.roberta.load_state_dict(torch.load(file_path))
+        else:
+            raise NotImplementedError
     else:
         tokenizer = AutoTokenizer.from_pretrained(args.backbone_model_name)
         model = AutoModelForSequenceClassification.from_pretrained(args.backbone_model_name)
