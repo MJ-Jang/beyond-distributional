@@ -45,8 +45,8 @@ def main(args):
     train = df[:tr_split]
     dev = df[tr_split:]
 
-    train.to_csv(os.path.join(DIR, 'train.tsv'), sep='\t', encoding="utf-8", index=False)
-    dev.to_csv(os.path.join(DIR, 'dev.tsv'), sep='\t', encoding="utf-8", index=False)
+    train.to_csv(os.path.join(DIR, f'train-n_neg{args.n_neg_sample}.tsv'), sep='\t', encoding="utf-8", index=False)
+    dev.to_csv(os.path.join(DIR, f'dev-{args.n_neg_sample}.tsv'), sep='\t', encoding="utf-8", index=False)
 
 
 if __name__ == '__main__':
