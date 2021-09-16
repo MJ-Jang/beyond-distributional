@@ -100,8 +100,7 @@ def main(args):
         tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[args.backbone_model_name])
         model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[args.backbone_model_name])
     elif "meaning_matching" in args.backbone_model_name:
-        backbone_model = args.backbone_model_name.replace("meaning_matching-", "").split('-')[0]
-
+        backbone_model = args.backbone_model_name.replace("meaning_matching-", "").split("-n_neg")[0]
         tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[backbone_model])
         model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[backbone_model])
 
