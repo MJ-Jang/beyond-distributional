@@ -46,6 +46,7 @@ class MeaningMatchingnDataModule:
             self,
             tokenizer,
             data_dir_path: Text,
+            n_neg: int,
             max_length: int = 64,
             padding: Text = 'max_length',
             truncation: Text = 'longest_first'
@@ -55,9 +56,10 @@ class MeaningMatchingnDataModule:
         self.padding = padding
         self.truncation = truncation
         self.data_dir_path = data_dir_path
+        self.n_neg = n_neg
 
     def __call__(self, *args, **kwargs):
-        dataset = self.load_mm_dataset(self.data_dir_path)
+        dataset = self.load_mm_dataset(self.data_dir_path, self.n_neg)
         features_dict = {}
 
         for phase, phase_dataset in dataset.items():
@@ -90,9 +92,9 @@ class MeaningMatchingnDataModule:
         return features
 
     @staticmethod
-    def load_mm_dataset(data_dir_path: Text):
-        train = pd.read_csv(os.path.join(data_dir_path, 'train.tsv'), sep='\t')
-        dev = pd.read_csv(os.path.join(data_dir_path, 'dev.tsv'), sep='\t')
+    def load_mm_dataset(data_dir_path: Text, n_neg: int):
+        train = pd.read_csv(os.path.join(data_dir_path, f'train-n_neg{n_neg}.tsv'), sep='\t')
+        dev = pd.read_csv(os.path.join(data_dir_path, f'dev-n_neg{n_neg}.tsv'), sep='\t')
         
         train = train.dropna()
         dev = dev.dropna()        

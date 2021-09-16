@@ -103,6 +103,7 @@ def main(args):
 
     data_module = MeaningMatchingnDataModule(
         tokenizer,
+        n_neg=args.n_neg,
         data_dir_path=data_dir_path,
         max_length=cfg.get('max_length'),
     )
@@ -142,7 +143,7 @@ def main(args):
     trained_model = trainer.model
 
     model_name = args.backbone_model_name.split('/')[-1]
-    save_prefix = f"meaning_matching-{model_name}"
+    save_prefix = f"meaning_matching-{model_name}-n_neg{args.n_neg}"
     save_state_dict(trained_model, os.path.join(dir_path, './model_binary'), save_prefix)
 
 
@@ -150,6 +151,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--backbone_model_name', type=str, default='roberta-base')
+
+    parser.add_argument('--n_neg', type=int, default=5)
 
     args = parser.parse_args()
     main(args)
