@@ -90,6 +90,15 @@ def freeze_encoder(model):
     return model
 
 
+def load_plm_state_dict(file_name, plm_name):
+    aa = torch.load(file_name)
+    new_dict = {}
+    for key in aa.keys():
+        if key.startswith(plm_name):
+            new_dict[key.replace(f"{plm_name}.", "")] = aa[key]
+    return new_dict
+
+
 def main(args):
     dir_path = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(dir_path, 'config.yaml'), 'r') as readFile:
@@ -109,7 +118,7 @@ def main(args):
         file_path = os.path.join(dir_path, "../mm_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
 
         if backbone_model.startswith("roberta"):
-            model.roberta.load_state_dict(torch.load(file_path))
+            model.roberta.load_state_dict(load_plm_state_dict(file_path, 'roberta'))
         else:
             raise NotImplementedError
     else:
