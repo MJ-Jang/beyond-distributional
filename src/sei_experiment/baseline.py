@@ -42,7 +42,7 @@ import json
 import pickle
 import argparse
 from typing import Text, List, Dict
-from transformers import AutoModel
+from transformers import AutoModel, AutoModelForSequenceClassification
 from transformers import AutoTokenizer
 from tqdm import tqdm
 from numpy import dot
@@ -59,16 +59,30 @@ pretrain_model_dict = {
     "roberta-large": "roberta-large",
     "albert-base": "albert-base-v2",
     "albert-large": "albert-large-v2",
-    "roberta-base-meaning-match": "korca/roberta-base-mm",
-    "bert-base-meaning-match": "korca/bert-base-mm-cased"
 }
 
 
 class WordVectorGenerator:
 
     def __init__(self, model_name: Text, device):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name)
+        if model_name in pretrain_model_dict:
+            self.tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[model_name])
+            self.model = AutoModel.from_pretrained(pretrain_model_dict[model_name])
+        elif "meaning_matching" in model_name:
+            backbone_model = model_name.replace("meaning_matching-", "").split("-n_neg")[0]
+            self.tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[backbone_model])
+            model_clf = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[backbone_model])
+
+            # load model from binary file
+            dir_path = os.path.dirname(os.path.abspath(__file__))
+            file_path = os.path.join(dir_path, "../mm_experiment/model_binary/", f"{model_name}.ckpt")
+            model_clf.load_state_dict(torch.load(file_path))
+
+            if backbone_model.startswith("roberta"):
+                self.model = model_clf.roberta
+            else:
+                raise NotImplementedError
+
         self.model.to(device)
         self.special_tokens = [
             self.tokenizer.pad_token_id,
@@ -140,7 +154,7 @@ def main():
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         for key, value in tqdm(pretrain_model_dict.items(), total=len(pretrain_model_dict)):
-            generator = WordVectorGenerator(model_name=value, device=device)
+            generator = WordVectorGenerator(model_name=key, device=device)
 
             word1_vecs = generator(word1)
             word2_vecs = generator(word2)
