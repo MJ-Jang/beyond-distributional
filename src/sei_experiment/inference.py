@@ -112,7 +112,7 @@ def main(args):
         elif backbone_model.startswith('electra'):
             model.electra.load_state_dict(torch.load(file_path))
         elif backbone_model.startswith('bert'):
-            model.electra.load_state_dict(torch.load(file_path))
+            model.bert.load_state_dict(torch.load(file_path))
         else:
             raise NotImplementedError
     else:
