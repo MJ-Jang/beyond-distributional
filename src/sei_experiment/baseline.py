@@ -59,7 +59,6 @@ pretrain_model_dict = {
     "roberta-large": "roberta-large",
     "albert-base": "albert-base-v2",
     "albert-large": "albert-large-v2",
-    "meaning_matching-roberta-base-n_neg5": "meaning_matching-roberta-base-n_neg5.ckpt"
 }
 
 
@@ -154,7 +153,13 @@ def main():
         label_idx = test_set['label_idx'].tolist()
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        for key, value in tqdm(pretrain_model_dict.items(), total=len(pretrain_model_dict)):
+
+        candidates = [
+            "meaning_match-roberta-base-n_neg5"
+        ]
+        candidates += list(pretrain_model_dict.keys())
+        
+        for key in tqdm(candidates, total=len(candidates)):
             generator = WordVectorGenerator(model_name=key, device=device)
 
             word1_vecs = generator(word1)
