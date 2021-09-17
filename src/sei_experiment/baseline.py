@@ -80,6 +80,8 @@ class WordVectorGenerator:
 
             if backbone_model.startswith("roberta"):
                 self.model = model_clf.roberta
+            elif backbone_model.startswith("electra"):
+                self.model = model_clf.electra
             else:
                 raise NotImplementedError
         else:

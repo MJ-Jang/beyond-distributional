@@ -119,6 +119,8 @@ def main(args):
 
         if backbone_model.startswith("roberta"):
             model.roberta.load_state_dict(load_plm_state_dict(file_path, 'roberta'))
+        elif backbone_model.startswith('electra'):
+            model.electra.load_state_dict(load_plm_state_dict(file_path, 'electra'))
         else:
             raise NotImplementedError
     else:
