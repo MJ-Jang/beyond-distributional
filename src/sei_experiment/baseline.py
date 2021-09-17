@@ -179,7 +179,7 @@ def main():
                 test_acc.append(accuracy)
 
     outp = {
-        "model": list(pretrain_model_dict.keys()),
+        "model": candidates,
         "val_acc": val_acc,
         "test_acc": test_acc
     }
