@@ -82,6 +82,8 @@ class WordVectorGenerator:
                 self.model = model_clf.roberta
             else:
                 raise NotImplementedError
+        else:
+            raise NotImplementedError
 
         self.model.to(device)
         self.special_tokens = [
@@ -155,10 +157,10 @@ def main():
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         candidates = [
-            "meaning_match-roberta-base-n_neg5"
+            "meaning_matching-roberta-base-n_neg5"
         ]
         candidates += list(pretrain_model_dict.keys())
-        
+
         for key in tqdm(candidates, total=len(candidates)):
             generator = WordVectorGenerator(model_name=key, device=device)
 
