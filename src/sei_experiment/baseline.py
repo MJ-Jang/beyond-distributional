@@ -161,7 +161,7 @@ def main():
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         candidates = [
-            "meaning_matching-roberta-base-n_neg5"
+            "meaning_matching-roberta-base-n_neg5",
             "meaning_matching-bert-base-n_neg5"
         ]
         candidates += list(pretrain_model_dict.keys())
