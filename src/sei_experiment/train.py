@@ -50,8 +50,8 @@ metric = load_metric("accuracy")
 
 
 pretrain_model_dict = {
-    "electra-small": "google/electra-small-discriminator",
-    "electra-large": 'google/electra-large-discriminator',
+    "electra-small": "google/electra-small-generator",
+    "electra-large": 'google/electra-large-generator',
     "bert-base": "bert-base-cased",
     "bert-large": "bert-large-cased",
     "roberta-base": "roberta-base",
