@@ -124,7 +124,7 @@ def main(args):
         elif backbone_model.startswith('bert'):
             model.bert.load_state_dict(load_plm_state_dict(file_path, 'bert'))
         elif backbone_model.startswith('albert'):
-            model.bert.load_state_dict(load_plm_state_dict(file_path, 'albert'))
+            model.albert.load_state_dict(load_plm_state_dict(file_path, 'albert'))
         else:
             raise NotImplementedError
     else:
