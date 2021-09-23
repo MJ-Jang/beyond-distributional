@@ -84,6 +84,8 @@ class WordVectorGenerator:
                 self.model = model_clf.electra
             elif backbone_model.startswith('bert'):
                 self.model = model_clf.bert
+            elif backbone_model.startswith('albert'):
+                self.model = model_clf.albert
             else:
                 raise NotImplementedError
         else:

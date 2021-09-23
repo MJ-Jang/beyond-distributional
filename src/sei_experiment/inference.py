@@ -107,14 +107,8 @@ def main(args):
         dir_path = os.path.dirname(os.path.abspath(__file__))
         file_path = os.path.join(dir_path, "../mm_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
 
-        if backbone_model.startswith("roberta"):
-            model.load_state_dict(torch.load(file_path))
-        elif backbone_model.startswith('electra'):
-            model.load_state_dict(torch.load(file_path))
-        elif backbone_model.startswith('bert'):
-            model.load_state_dict(torch.load(file_path))
-        else:
-            raise NotImplementedError
+        model.load_state_dict(torch.load(file_path))
+
     else:
         tokenizer = AutoTokenizer.from_pretrained(args.backbone_model_name)
         model = AutoModelForSequenceClassification.from_pretrained(args.backbone_model_name)
