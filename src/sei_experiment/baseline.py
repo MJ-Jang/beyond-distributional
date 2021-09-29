@@ -167,7 +167,8 @@ def main():
             "meaning_matching-roberta-base-n_neg5",
             "meaning_matching-roberta-base-n_neg10",
             "meaning_matching-roberta-base-n_neg20",
-            "meaning_matching-bert-base-n_neg5",
+            "meaning_matching-bert-base-n_neg10",
+            "meaning_matching-electra-small-n_neg10",
         ]
         candidates += list(pretrain_model_dict.keys())
 
