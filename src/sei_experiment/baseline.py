@@ -52,6 +52,7 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 pretrain_model_dict = {
     "electra-small": "google/electra-small-generator",
+    "electra-base": "google/electra-base-discriminator",
     "electra-large": 'google/electra-large-generator',
     "bert-base": "bert-base-cased",
     "bert-large": "bert-large-cased",
@@ -167,8 +168,14 @@ def main():
             "meaning_matching-roberta-base-n_neg5",
             "meaning_matching-roberta-base-n_neg10",
             "meaning_matching-roberta-base-n_neg20",
+            "meaning_matching-roberta-large-n_neg10",
             "meaning_matching-bert-base-n_neg10",
+            "meaning_matching-bert-large-n_neg10",
             "meaning_matching-electra-small-n_neg10",
+            "meaning_matching-electra-base-n_neg10",
+            "meaning_matching-electra-large-n_neg10",
+            "meaning_matching-albert-base-n_neg10",
+            "meaning_matching-albert-large-n_neg10",
         ]
         candidates += list(pretrain_model_dict.keys())
 

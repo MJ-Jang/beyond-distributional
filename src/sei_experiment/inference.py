@@ -49,6 +49,7 @@ from data import SemanticIdentificationDataModule
 
 pretrain_model_dict = {
     "electra-small": "google/electra-small-discriminator",
+    "electra-base": "google/electra-base-discriminator",
     "electra-large": 'google/electra-large-discriminator',
     "bert-base": "bert-base-cased",
     "bert-large": "bert-large-cased",
