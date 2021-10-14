@@ -66,8 +66,8 @@ def main():
             plm1 = copy.deepcopy(model1.bert.state_dict())
             plm2 = copy.deepcopy(model2.bert.state_dict())
         elif 'electra' in m1:
-            plm1 = copy.deepcopy(model1.bert.state_dict())
-            plm2 = copy.deepcopy(model2.bert.state_dict())
+            plm1 = copy.deepcopy(model1.electra.state_dict())
+            plm2 = copy.deepcopy(model2.electra.state_dict())
         elif 'roberta' in m1:
             plm1 = copy.deepcopy(model1.roberta.state_dict())
             plm2 = copy.deepcopy(model2.roberta.state_dict())
