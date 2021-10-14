@@ -62,16 +62,16 @@ def main():
         model2 = AutoModelForSequenceClassification.from_pretrained(m1)
         model2.load_state_dict(torch.load(file_path))
 
-        if m1.startswith('bert'):
+        if key.startswith('bert'):
             plm1 = copy.deepcopy(model1.bert.state_dict())
             plm2 = copy.deepcopy(model2.bert.state_dict())
-        elif m1.startswith('electra'):
+        elif key.startswith('electra'):
             plm1 = copy.deepcopy(model1.electra.state_dict())
             plm2 = copy.deepcopy(model2.electra.state_dict())
-        elif m1.startswith('roberta'):
+        elif key.startswith('roberta'):
             plm1 = copy.deepcopy(model1.roberta.state_dict())
             plm2 = copy.deepcopy(model2.roberta.state_dict())
-        elif m1.startswith('albert'):
+        elif key.startswith('albert'):
             plm1 = copy.deepcopy(model1.albert.state_dict())
             plm2 = copy.deepcopy(model2.albert.state_dict())
         else:
