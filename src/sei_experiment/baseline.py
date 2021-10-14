@@ -51,9 +51,9 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 
 pretrain_model_dict = {
-    "electra-small": "google/electra-small-generator",
+    "electra-small": "google/electra-small-discriminator",
     "electra-base": "google/electra-base-discriminator",
-    "electra-large": 'google/electra-large-generator',
+    "electra-large": 'google/electra-large-discriminator',
     "bert-base": "bert-base-cased",
     "bert-large": "bert-large-cased",
     "roberta-base": "roberta-base",
@@ -152,6 +152,22 @@ def main():
     dir_path = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(dir_path, '../../data/SEI_data')
 
+    candidates = [
+        "meaning_matching-roberta-base-n_neg3",
+        "meaning_matching-roberta-base-n_neg5",
+        "meaning_matching-roberta-base-n_neg10",
+        "meaning_matching-roberta-base-n_neg20",
+        "meaning_matching-roberta-large-n_neg10",
+        "meaning_matching-bert-base-n_neg10",
+        "meaning_matching-bert-large-n_neg10",
+        "meaning_matching-electra-small-n_neg10",
+        "meaning_matching-electra-base-n_neg10",
+        "meaning_matching-electra-large-n_neg10",
+        "meaning_matching-albert-base-n_neg10",
+        "meaning_matching-albert-large-n_neg10",
+    ]
+    candidates += list(pretrain_model_dict.keys())
+
     val_acc, test_acc = list(), list()
 
     for data in tqdm(['dev', 'test'], desc='Processing datasets'):
@@ -162,22 +178,6 @@ def main():
         label_idx = test_set['label_idx'].tolist()
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-        candidates = [
-            "meaning_matching-roberta-base-n_neg3",
-            "meaning_matching-roberta-base-n_neg5",
-            "meaning_matching-roberta-base-n_neg10",
-            "meaning_matching-roberta-base-n_neg20",
-            "meaning_matching-roberta-large-n_neg10",
-            "meaning_matching-bert-base-n_neg10",
-            "meaning_matching-bert-large-n_neg10",
-            "meaning_matching-electra-small-n_neg10",
-            "meaning_matching-electra-base-n_neg10",
-            "meaning_matching-electra-large-n_neg10",
-            "meaning_matching-albert-base-n_neg10",
-            "meaning_matching-albert-large-n_neg10",
-        ]
-        candidates += list(pretrain_model_dict.keys())
 
         for key in tqdm(candidates, total=len(candidates)):
             generator = WordVectorGenerator(model_name=key, device=device)
