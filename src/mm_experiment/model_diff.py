@@ -41,8 +41,8 @@ def calculate_diff(plm1, plm2):
             raise NotImplementedError
 
         frobenius_norm = np.sqrt(np.sum(pow_))
-        avg_f_norm = frobenius_norm / len_
-        scores.append(avg_f_norm)
+        # avg_f_norm = frobenius_norm / len_
+        scores.append(frobenius_norm)
     return scores
 
 
