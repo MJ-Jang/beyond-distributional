@@ -7,3 +7,4 @@ cfg:
   epochs: 15
   output_dir: "./tmp_model_binary"
   patience: 3
+  n_neg: 10
