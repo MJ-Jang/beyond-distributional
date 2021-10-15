@@ -80,12 +80,12 @@ def main():
         del model1, model2
 
         scores = calculate_diff(plm1, plm2)
-        mean_, std_ = np.mean(scores), np.std(scores)
-
+        mean_, std_ = np.mean(scores)[0], np.std(scores)[0]
+        
         outp['model'].append(key)
         outp['mean'].append(mean_)
         outp['std'].append(std_)
-
+    
     out_df = pd.DataFrame(outp)
     save_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../output/mm_experiment')
     os.makedirs(save_dir, exist_ok=True)
