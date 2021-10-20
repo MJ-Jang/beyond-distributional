@@ -96,7 +96,7 @@ def main():
 
     out_df.to_csv(os.path.join(save_dir, 'model_param_diff.tsv'), sep='\t', encoding='utf-8', index=False)
 
-    with open(os.path.join(save_dir, "model_diff_outputs.json"), 'w', encoding='utf-8') as saveFile:
+    with open(os.path.join(save_dir, "model_diff_outputs.json"), 'wb') as saveFile:
         json.dump(saveFile, score_outputs)
 
 
