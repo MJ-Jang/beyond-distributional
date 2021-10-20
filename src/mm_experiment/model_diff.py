@@ -44,6 +44,10 @@ def calculate_diff(plm1, plm2):
 
         frobenius_norm = np.sqrt(np.sum(pow_))  # calculate the frobenius norm
         avg_f_norm = frobenius_norm / len_  # average
+        if avg_f_norm.__class__ == np.ndarray:
+            avg_f_norm = float(avg_f_norm[0])
+        else:
+            avg_f_norm = float(avg_f_norm)
         scores.append(avg_f_norm)
     return scores
 
@@ -84,13 +88,12 @@ def main():
         del model1, model2
 
         scores = calculate_diff(plm1, plm2)
-        mean_, std_ = np.mean(scores)[0], np.std(scores)[0]
+        mean_, std_ = np.mean(scores), np.std(scores)
         
         outp['model'].append(key)
         outp['mean'].append(mean_)
         outp['std'].append(std_)
         score_outputs[key] = scores
-    
     out_df = pd.DataFrame(outp)
     save_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../output/mm_experiment')
     os.makedirs(save_dir, exist_ok=True)
