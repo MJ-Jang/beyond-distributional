@@ -5,6 +5,7 @@ import numpy as np
 import copy
 import os
 import torch
+import json
 
 from transformers import AutoModelForSequenceClassification
 from tqdm import tqdm
@@ -26,7 +27,7 @@ pretrain_model_dict = {
 def calculate_diff(plm1, plm2):
     assert plm1.keys() == plm2.keys()
     scores = []
-    for key in plm1.keys():
+    for key in plm1.keys():  # for each layer
 
         mat1 = plm1[key].numpy()
         mat2 = plm2[key].numpy()
@@ -40,8 +41,8 @@ def calculate_diff(plm1, plm2):
         else:
             raise NotImplementedError
 
-        frobenius_norm = np.sqrt(np.sum(pow_))
-        avg_f_norm = frobenius_norm / len_
+        frobenius_norm = np.sqrt(np.sum(pow_))  # calculate the frobenius norm
+        avg_f_norm = frobenius_norm / len_  # average
         scores.append(avg_f_norm)
     return scores
 
@@ -52,6 +53,8 @@ def main():
         "mean": [],
         "std": []
     }
+
+    score_outputs = {}
 
     for key, (m1, m2) in tqdm(pretrain_model_dict.items(), total=len(pretrain_model_dict.keys())):
         model1 = AutoModelForSequenceClassification.from_pretrained(m1)
@@ -85,12 +88,16 @@ def main():
         outp['model'].append(key)
         outp['mean'].append(mean_)
         outp['std'].append(std_)
+        score_outputs[key] = scores
     
     out_df = pd.DataFrame(outp)
     save_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../output/mm_experiment')
     os.makedirs(save_dir, exist_ok=True)
 
     out_df.to_csv(os.path.join(save_dir, 'model_param_diff.tsv'), sep='\t', encoding='utf-8', index=False)
+
+    with open(os.path.join(save_dir, "model_diff_outputs.json"), 'w', encoding='utf-8') as saveFile:
+        json.dump(saveFile, score_outputs)
 
 
 if __name__ == '__main__':
