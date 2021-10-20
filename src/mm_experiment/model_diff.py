@@ -6,6 +6,7 @@ import copy
 import os
 import torch
 import json
+import pickle
 
 from transformers import AutoModelForSequenceClassification
 from tqdm import tqdm
@@ -96,8 +97,8 @@ def main():
 
     out_df.to_csv(os.path.join(save_dir, 'model_param_diff.tsv'), sep='\t', encoding='utf-8', index=False)
 
-    with open(os.path.join(save_dir, "model_diff_outputs.json"), 'wb') as saveFile:
-        json.dump(saveFile, score_outputs)
+    with open(os.path.join(save_dir, "model_diff_outputs.json"), 'w', encoding='utf-8') as saveFile:
+        json.dump(score_outputs, saveFile)
 
 
 if __name__ == '__main__':
