@@ -96,9 +96,9 @@ class WordClassPredictionDataModule:
         train = train.dropna()
         dev = dev.dropna()
 
-        train['label'] = [self.map_label_to_idx(p) for p in train['Pos']]
+        train['label'] = [self.map_label_to_idx(p) for p in train['Pos'].tolist()]
         train = train.drop(columns='Pos')
-        dev['label'] = [self.map_label_to_idx(p) for p in dev['Pos']]
+        dev['label'] = [self.map_label_to_idx(p) for p in dev['Pos'].tolist()]
         dev = dev.drop(columns='Pos')
 
         train = Dataset.from_dict({key: train[key].tolist() for key in train.keys()})
