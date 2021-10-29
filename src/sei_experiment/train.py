@@ -129,8 +129,8 @@ def main(args):
         else:
             raise NotImplementedError
 
-    elif "word_class_prediction" in args.backbone_model_name:
-        backbone_model = args.backbone_model_name.replace("word_class_prediction-", "")
+    elif "word_class_predict" in args.backbone_model_name:
+        backbone_model = args.backbone_model_name.replace("word_class_predict-", "")
         tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[backbone_model])
         model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[backbone_model])
 
