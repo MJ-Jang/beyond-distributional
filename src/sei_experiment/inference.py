@@ -117,7 +117,7 @@ def main(args):
 
         # load model from binary file
         dir_path = os.path.dirname(os.path.abspath(__file__))
-        file_path = os.path.join(dir_path, "../mm_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
+        file_path = os.path.join(dir_path, "../wc_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
 
         model.load_state_dict(torch.load(file_path))
 
