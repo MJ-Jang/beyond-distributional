@@ -115,12 +115,6 @@ def main(args):
         tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[backbone_model])
         model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[backbone_model])
 
-        # load model from binary file
-        dir_path = os.path.dirname(os.path.abspath(__file__))
-        file_path = os.path.join(dir_path, "../wc_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
-
-        model.load_state_dict(torch.load(file_path))
-
     else:
         tokenizer = AutoTokenizer.from_pretrained(args.backbone_model_name)
         model = AutoModelForSequenceClassification.from_pretrained(args.backbone_model_name)
