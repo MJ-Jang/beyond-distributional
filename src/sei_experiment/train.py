@@ -128,6 +128,27 @@ def main(args):
             model.albert.load_state_dict(load_plm_state_dict(file_path, 'albert'))
         else:
             raise NotImplementedError
+
+    elif "word_class_predict" in args.backbone_model_name:
+        backbone_model = args.backbone_model_name.replace("word_class_predict-", "")
+        tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[backbone_model])
+        model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[backbone_model])
+
+        # load model from binary file
+        dir_path = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(dir_path, "../wc_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
+
+        if backbone_model.startswith("roberta"):
+            model.roberta.load_state_dict(load_plm_state_dict(file_path, 'roberta'))
+        elif backbone_model.startswith('electra'):
+            model.electra.load_state_dict(load_plm_state_dict(file_path, 'electra'))
+        elif backbone_model.startswith('bert'):
+            model.bert.load_state_dict(load_plm_state_dict(file_path, 'bert'))
+        elif backbone_model.startswith('albert'):
+            model.albert.load_state_dict(load_plm_state_dict(file_path, 'albert'))
+        else:
+            raise NotImplementedError
+
     else:
         tokenizer = AutoTokenizer.from_pretrained(args.backbone_model_name)
         model = AutoModelForSequenceClassification.from_pretrained(args.backbone_model_name)
