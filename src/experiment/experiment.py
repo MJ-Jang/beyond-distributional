@@ -49,9 +49,6 @@ from metrics import jaccard_similarity, cosine_similarity, top_hitrate
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 
-# file_name = os.path.join("src/mm_experiment/model_binary/",
-#                          f"meaning_matching-bert-base-n_neg5.ckpt")
-
 
 def load_plm_state_dict(file_name, plm_name):
     aa = torch.load(file_name)
@@ -63,13 +60,6 @@ def load_plm_state_dict(file_name, plm_name):
             new_dict[key.replace(f"{plm_name}.", "")] = aa[key]
     return new_dict
 
-# model = BertForMaskedLM.from_pretrained('bert-base-cased')
-# keys = model.bert.state_dict().keys()
-# mm_keys = aa.keys()
-# list(keys)
-# [key for key in mm_keys if key.startswith('bert.')]
-# len(keys)
-# len()
 
 class ExperimentOperator:
 
@@ -224,7 +214,7 @@ class ExperimentOperator:
             original_results_ = self.unmasker(batch_)
             original_preds_ = list()
             for r in original_results_:
-                tokens = [r_['token_str'].encode('ascii', 'ignore').decode('utf-8') for r_ in r]
+                tokens = [r_['token_str'].encode('ascii', 'ignore').decode('utf-8').strip() for r_ in r]
                 scores = [r_['score'] for r_ in r]
                 original_preds_.append({'tokens': tokens, 'scores': scores})
             preds += original_preds_
