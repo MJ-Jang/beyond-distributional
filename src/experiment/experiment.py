@@ -87,10 +87,10 @@ class ExperimentOperator:
             "roberta-large": "roberta-large",
             "albert-base": "albert-base-v2",
             "albert-large": "albert-large-v2",
-            "meaning_matching-bert-base": "meaning_matching-bert-base-n_neg5",
-            "meaning_matching-roberta-base": "meaning_matching-roberta-base-n_neg5",
-            "meaning_matching-bert-large": "meaning_matching-bert-large-n_neg5",
-            "meaning_matching-roberta-large": "meaning_matching-roberta-large-n_neg5"
+            "meaning_matching-bert-base": "meaning_matching-bert-base-n_neg10",
+            "meaning_matching-roberta-base": "meaning_matching-roberta-base-n_neg10",
+            "meaning_matching-bert-large": "meaning_matching-bert-large-n_neg10",
+            "meaning_matching-roberta-large": "meaning_matching-roberta-large-n_neg10"
         }
 
         use_gpu = torch.cuda.is_available()

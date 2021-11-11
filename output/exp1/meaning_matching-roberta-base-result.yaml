@@ -1,0 +1,120 @@
+All:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 4.537616843633724e-05
+  avg_W_HR@3: 2.2523227267835926e-05
+  avg_HR@5: 6.352663581087213e-05
+  avg_W_HR@5: 3.8603256766056635e-05
+  avg_jaccard: 0.16286496778459608
+  avg_const_cos: 0.2640873167434733
+  avg_cos: 0.32517755596956055
+ask_antonym:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 5.957700327673518e-05
+  avg_W_HR@3: 2.9572051386867327e-05
+  avg_HR@5: 8.340780458742924e-05
+  avg_W_HR@5: 5.068445472805219e-05
+  avg_jaccard: 0.16379130524177637
+  avg_const_cos: 0.26530281440480197
+  avg_cos: 0.325676672643286
+ask_synonym:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 0.0
+  avg_W_HR@5: 0.0
+  avg_jaccard: 0.15990502599537645
+  avg_const_cos: 0.2602034164492793
+  avg_cos: 0.3235827199961202
+Adverb:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 0.0
+  avg_W_HR@5: 0.0
+  avg_jaccard: 0.13398327994157613
+  avg_const_cos: 0.22173910826087176
+  avg_cos: 0.2878876087078162
+Adjective:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 0.0
+  avg_W_HR@5: 0.0
+  avg_jaccard: 0.16026693174416723
+  avg_const_cos: 0.26082936343402324
+  avg_cos: 0.3133808447845307
+Noun:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 6.744907594765952e-05
+  avg_W_HR@3: 3.347948755757238e-05
+  avg_HR@5: 9.442870632672333e-05
+  avg_W_HR@5: 5.7381530595599363e-05
+  avg_jaccard: 0.16620826735885838
+  avg_const_cos: 0.26876485812927264
+  avg_cos: 0.3329329483197846
+X is the opposite of Y.:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 7.149240393208223e-05
+  avg_W_HR@5: 1.015282970054784e-05
+  avg_jaccard: 0.1441245559930632
+  avg_const_cos: 0.2393029251313697
+  avg_cos: 0.26587866669991905
+X is an antonym of Y.:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 0.0
+  avg_W_HR@5: 0.0
+  avg_jaccard: 0.24670052332404832
+  avg_const_cos: 0.3830205157640789
+  avg_cos: 0.554090581189888
+X is a synonym of Y.:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 0.0
+  avg_W_HR@5: 0.0
+  avg_jaccard: 0.24111916361744584
+  avg_const_cos: 0.37515701559680553
+  avg_cos: 0.5307999278347442
+X is different from Y.:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.00017873100983020553
+  avg_W_HR@3: 8.871615416060199e-05
+  avg_HR@5: 0.00017873100983020553
+  avg_W_HR@5: 0.00014190053448360875
+  avg_jaccard: 0.10054883640821759
+  avg_const_cos: 0.17358500231895735
+  avg_cos: 0.15706077004005095
+X is a rephrasing of Y.:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 0.0
+  avg_W_HR@5: 0.0
+  avg_jaccard: 0.10781119781826129
+  avg_const_cos: 0.18523623692635852
+  avg_cos: 0.18638272123009905
+X is another form of Y.:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 0.0
+  avg_W_HR@5: 0.0
+  avg_jaccard: 0.13078471655042215
+  avg_const_cos: 0.22021699682467383
+  avg_cos: 0.2535655109235174
