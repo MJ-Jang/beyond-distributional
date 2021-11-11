@@ -70,7 +70,9 @@ def save_state_dict(model, save_path: str, save_prefix: str):
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
     predictions = np.argmax(logits, axis=-1)
-    return metric.compute(predictions=predictions, references=labels)
+    if len(labels.shape) == 2:
+        labels = labels.reshape([-1])
+    return metric.compute(predictions=predictions, references=labels, average='weighted')
 
 
 def freeze_encoder(model):
