@@ -1,0 +1,80 @@
+All:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 9.92063492063492e-05
+  avg_W_HR@3: 9.628308891192651e-05
+  avg_HR@5: 5.9523809523809524e-05
+  avg_W_HR@5: 8.04032713098238e-05
+  avg_jaccard: 0.2393971191900624
+  avg_const_cos: 0.3563609299235553
+  avg_cos: 0.4269845906711337
+CapableOf:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 0.0
+  avg_W_HR@5: 0.0
+  avg_jaccard: 0.22144540483330424
+  avg_const_cos: 0.33507042148872673
+  avg_cos: 0.3696445256351902
+PartOf:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 0.0
+  avg_W_HR@5: 0.0
+  avg_jaccard: 0.29052515111183963
+  avg_const_cos: 0.425081621829101
+  avg_cos: 0.5019646291928471
+UsedFor:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0005005005005005005
+  avg_W_HR@3: 0.0004857525206367464
+  avg_HR@5: 0.00030030030030030034
+  avg_W_HR@5: 0.000405638125527039
+  avg_jaccard: 0.20970281874894334
+  avg_const_cos: 0.3168657092401491
+  avg_cos: 0.3519563787329651
+MadeOf:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 0.0
+  avg_W_HR@5: 0.0
+  avg_jaccard: 0.23209984178920937
+  avg_const_cos: 0.34864873043114997
+  avg_cos: 0.4688803065231687
+IsA:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 0.0
+  avg_W_HR@5: 0.0
+  avg_jaccard: 0.26042150130089514
+  avg_const_cos: 0.38522819780157586
+  avg_cos: 0.47930461261123153
+NotDesires:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 0.0
+  avg_W_HR@5: 0.0
+  avg_jaccard: 0.26763659665436634
+  avg_const_cos: 0.392126690083123
+  avg_cos: 0.4782820162325067
+HasA:
+  avg_HR@1: 0.0
+  avg_W_HR@1: 0.0
+  avg_HR@3: 0.0
+  avg_W_HR@3: 0.0
+  avg_HR@5: 0.0
+  avg_W_HR@5: 0.0
+  avg_jaccard: 0.17922872167789655
+  avg_const_cos: 0.2720265290512552
+  avg_cos: 0.33689216312809495
