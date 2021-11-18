@@ -158,7 +158,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str, default='mnli',
                         help='finetuning task name')
     parser.add_argument('--data_type', type=str, default='test', choices=['validation', 'validation_matched',
-                                                                          'validatioin_mismatched'],
+                                                                          'validation_mismatched'],
                         help='type of data for inference')
     parser.add_argument('--batch_size', type=int, default=64,
                         help='size of batch for inference')
