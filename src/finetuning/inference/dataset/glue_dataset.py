@@ -96,7 +96,7 @@ class RTEAutoInferenceDataset(GLUEAuToInferenceDataset):
 
 
 class SSTAutoInferenceDataset(GLUEAuToInferenceDataset):
-    task_name = 'rte'
+    task_name = 'sst2'
 
     @staticmethod
     def process_input(data):
