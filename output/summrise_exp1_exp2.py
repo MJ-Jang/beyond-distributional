@@ -40,10 +40,11 @@ import pandas as pd
 import numpy as np
 
 model_list = ['baseline', 'bert-base', 'albert-base', 'roberta-base', 'electra-small',
-              'bert-large', 'albert-large', 'roberta-large', 'electra-large']
+              'bert-large', 'albert-large', 'roberta-large', 'electra-large',
+              "meaning_matching-bert-large", "meaning_matching-roberta-large"]
 
 dir_path_list = ['exp1', 'exp2']
-
+#dir_path = 'output/exp1'
 
 def process_summary(dir_path):
     all_output_dict = {
@@ -67,7 +68,7 @@ def process_summary(dir_path):
                 all_output_dict[new_key].append(value)
 
         # category result
-        if m == 'baseline':
+        if m == 'baseline' or m.startswith('meaning'):
             continue
 
         for key in data.keys():
