@@ -105,15 +105,17 @@ class SSTAutoInferenceDataset(GLUEAuToInferenceDataset):
         return data['sentence'], None
 
 
-class NegRTEAutoInferenceDataset(GLUEAuToInferenceDataset):
+class NegRTEAutoInferenceDataset:
     task_name = 'neg_rte'
+    padding = 'max_length'
+    max_length = 128
+    truncation = 'longest_first'
 
     def __init__(
             self,
             tokenizer,
             data_type: Text = 'test',
     ):
-        super().__init__(NegRTEAutoInferenceDataset,)
         assert data_type in ['test', 'validation', 'validation_matched', 'validation_mismatched']
 
         PWD = os.path.dirname(os.path.abspath(__file__))
@@ -159,15 +161,17 @@ class NegRTEAutoInferenceDataset(GLUEAuToInferenceDataset):
         return data['sentence1'], data['sentence2']
 
 
-class NegMNLIAutoInferenceDataset(GLUEAuToInferenceDataset):
+class NegMNLIAutoInferenceDataset:
     task_name = 'neg_mnli'
+    padding = 'max_length'
+    max_length = 128
+    truncation = 'longest_first'
 
     def __init__(
             self,
             tokenizer,
             data_type: Text = 'test',
     ):
-        super().__init__(NegMNLIAutoInferenceDataset,)
         assert data_type in ['test', 'validation', 'validation_matched', 'validation_mismatched']
 
         PWD = os.path.dirname(os.path.abspath(__file__))
