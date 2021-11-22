@@ -81,7 +81,14 @@ def prepare_data(args, tokenizer):
 
     elif args.dataset == 'qqp':
         return QQPAutoInferenceDataset(tokenizer, data_type=args.data_type)
+
     elif args.dataset == 'sst':
+        return SSTAutoInferenceDataset(tokenizer, data_type=args.data_type)
+
+    elif args.dataset == 'rte_neg':
+        return SSTAutoInferenceDataset(tokenizer, data_type=args.data_type)
+
+    elif args.dataset == 'mnli_neg':
         return SSTAutoInferenceDataset(tokenizer, data_type=args.data_type)
     else:
         raise NotImplementedError
@@ -91,11 +98,15 @@ def load_model_from_statedict(model, args):
     """
     This function is implemented to match the keys in state dict
     """
+    normalized_dataset = args.dataset.split('_')[0]
     if torch.cuda.is_available():
-        print('> load model path : ', os.path.join(args.dir_path, args.model_dir, f'{args.model_type}-{args.dataset}.ckpt'))
-        savefile = torch.load(os.path.join(args.dir_path, args.model_dir, f'{args.model_type}-{args.dataset}.ckpt'))
+        print('> load model path : ', os.path.join(args.dir_path, args.model_dir,
+                                                   f'{args.model_type}-{normalized_dataset}.ckpt'))
+        savefile = torch.load(os.path.join(args.dir_path, args.model_dir,
+                                           f'{args.model_type}-{normalized_dataset}.ckpt'))
     else:
-        savefile = torch.load(os.path.join(args.dir_path, args.model_dir, f'{args.model_type}-{args.dataset}.ckpt'),
+        savefile = torch.load(os.path.join(args.dir_path, args.model_dir,
+                                           f'{args.model_type}-{normalized_dataset}.ckpt'),
                               map_location=torch.device('cpu'))
     new_state_dict = {}
     for key, value in savefile['state_dict'].items():

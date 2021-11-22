@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import torch
+import os
+
 from torch.utils.data import Dataset
 from datasets import load_dataset
 from typing import Text
@@ -101,3 +103,111 @@ class SSTAutoInferenceDataset(GLUEAuToInferenceDataset):
     @staticmethod
     def process_input(data):
         return data['sentence'], None
+
+
+class NegRTEAutoInferenceDataset(GLUEAuToInferenceDataset):
+    task_name = 'neg_rte'
+
+    def __init__(
+            self,
+            tokenizer,
+            data_type: Text = 'test',
+    ):
+        super(NegRTEAutoInferenceDataset,).__init__(tokenizer, data_type)
+        assert data_type in ['test', 'validation', 'validation_matched', 'validation_mismatched']
+
+        PWD = os.path.dirname(os.path.abspath(__file__))
+        file_name = os.path.join(PWD, 'neg_nli/RTE.txt')
+
+        data = {
+            "sentence1": [],
+            "sentence2": [],
+            "label": []
+        }
+        with open(file_name, 'r', encoding='latin-1') as readFile:
+            for line in readFile.readlines():
+                idx_, sent1_, sent2_, label_ = line.split('\t')
+                if label_.strip() == 'gold_label':
+                    continue
+                label_ = 0 if label_.strip() == 'entailment' else 1
+                data['sentence1'].append(sent1_.strip())
+                data['sentence2'].append(sent2_.strip())
+                data['label'].append(label_)
+
+        self.label = data['label']
+        input_1, input_2 = self.process_input(data)
+
+        self.label = data['label']
+        if input_2 is None:
+            self.input_encodes = tokenizer(
+                input_1,
+                padding=self.padding,
+                max_length=self.max_length,
+                truncation=self.truncation
+            )
+        else:
+            self.input_encodes = tokenizer(
+                input_1,
+                input_2,
+                padding=self.padding,
+                max_length=self.max_length,
+                truncation=self.truncation
+            )
+
+    @staticmethod
+    def process_input(data):
+        return data['sentence1'], data['sentence2']
+
+
+class NegMNLIAutoInferenceDataset(GLUEAuToInferenceDataset):
+    task_name = 'neg_mnli'
+
+    def __init__(
+            self,
+            tokenizer,
+            data_type: Text = 'test',
+    ):
+        super(NegMNLIAutoInferenceDataset, ).__init__(tokenizer, data_type)
+        assert data_type in ['test', 'validation', 'validation_matched', 'validation_mismatched']
+
+        PWD = os.path.dirname(os.path.abspath(__file__))
+        file_name = os.path.join(PWD, 'neg_nli/MNLI.txt')
+
+        data = {
+            "premise": [],
+            "hypothesis": [],
+            "label": []
+        }
+        with open(file_name, 'r', encoding='latin-1') as readFile:
+            for line in readFile.readlines():
+                idx_, premise_, hypothesis_, label_ = line.split('\t')
+                if label_.strip() == 'gold_label':
+                    continue
+                label_ = 0 if label_.strip() == 'entailment' else 1 if label_.strip() == 'neutral' else 2
+                data['premise'].append(premise_.strip())
+                data['hypothesis'].append(hypothesis_.strip())
+                data['label'].append(label_)
+
+        self.label = data['label']
+        input_1, input_2 = self.process_input(data)
+
+        self.label = data['label']
+        if input_2 is None:
+            self.input_encodes = tokenizer(
+                input_1,
+                padding=self.padding,
+                max_length=self.max_length,
+                truncation=self.truncation
+            )
+        else:
+            self.input_encodes = tokenizer(
+                input_1,
+                input_2,
+                padding=self.padding,
+                max_length=self.max_length,
+                truncation=self.truncation
+            )
+
+    @staticmethod
+    def process_input(data):
+        return data['hypothesis'], data['premise']
