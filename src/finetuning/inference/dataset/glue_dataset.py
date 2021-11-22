@@ -113,7 +113,7 @@ class NegRTEAutoInferenceDataset(GLUEAuToInferenceDataset):
             tokenizer,
             data_type: Text = 'test',
     ):
-        super(NegRTEAutoInferenceDataset,).__init__(tokenizer, data_type)
+        super().__init__(NegRTEAutoInferenceDataset,)
         assert data_type in ['test', 'validation', 'validation_matched', 'validation_mismatched']
 
         PWD = os.path.dirname(os.path.abspath(__file__))
@@ -167,7 +167,7 @@ class NegMNLIAutoInferenceDataset(GLUEAuToInferenceDataset):
             tokenizer,
             data_type: Text = 'test',
     ):
-        super(NegMNLIAutoInferenceDataset, ).__init__(tokenizer, data_type)
+        super().__init__(NegMNLIAutoInferenceDataset,)
         assert data_type in ['test', 'validation', 'validation_matched', 'validation_mismatched']
 
         PWD = os.path.dirname(os.path.abspath(__file__))
