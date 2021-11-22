@@ -54,8 +54,10 @@ def prepare_model(args):
         "qnli": 2,
         "mrpc": 2,
         "sst": 2,
+        "snli": 3,
         "mnli_neg": 3,
-        "rte_neg": 2
+        "rte_neg": 2,
+        "snli_neg": 3
     }
 
     print(f'model type: {args.model_type}')
