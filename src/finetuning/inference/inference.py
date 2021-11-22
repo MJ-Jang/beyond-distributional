@@ -68,7 +68,7 @@ def prepare_model(args):
 def prepare_data(args, tokenizer):
     from dataset import MRPCAutoInferenceDataset, MNLIAutoInferenceDataset, QQPAutoInferenceDataset,\
     QNLIAutoInferenceDataset, RTEAutoInferenceDataset, SSTAutoInferenceDataset, NegRTEAutoInferenceDataset,\
-    NegMNLIAutoInferenceDataset
+    NegMNLIAutoInferenceDataset,  NegSNLIAutoInferenceDataset, SNLIAutoInferenceDataset
 
     if args.dataset == 'rte':
         return RTEAutoInferenceDataset(tokenizer, data_type=args.data_type)
@@ -88,11 +88,17 @@ def prepare_data(args, tokenizer):
     elif args.dataset == 'sst':
         return SSTAutoInferenceDataset(tokenizer, data_type=args.data_type)
 
+    elif args.dataset == 'snli':
+        return SNLIAutoInferenceDataset(tokenizer, data_type=args.data_type)
+
     elif args.dataset == 'rte_neg':
         return NegRTEAutoInferenceDataset(tokenizer, data_type=args.data_type)
 
     elif args.dataset == 'mnli_neg':
         return NegMNLIAutoInferenceDataset(tokenizer, data_type=args.data_type)
+
+    elif args.dataset == 'snli_neg':
+        return NegSNLIAutoInferenceDataset(tokenizer, data_type=args.data_type)
     else:
         raise NotImplementedError
 

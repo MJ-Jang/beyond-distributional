@@ -4,7 +4,7 @@ import torch
 import os
 
 from torch.utils.data import Dataset
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 from typing import Text
 
 
@@ -105,6 +105,103 @@ class SSTAutoInferenceDataset(GLUEAuToInferenceDataset):
         return data['sentence'], None
 
 
+class SNLIAutoInferenceDataset:
+    task_name = 'snli'
+    padding = 'max_length'
+    max_length = 128
+    truncation = 'longest_first'
+
+    def __init__(
+            self,
+            tokenizer,
+            data_type: Text = 'test',
+    ):
+        assert data_type in ['test', 'validation', 'validation_matched', 'validation_mismatched']
+        data = load_dataset('snli', split=data_type)
+        data = data.to_pandas()
+        data = data[data['label'] != -1]
+        data = Dataset.from_pandas(data)
+
+        input_1, input_2 = self.process_input(data)
+
+        self.label = data['label']
+        self.input_encodes = tokenizer(
+            input_1,
+            input_2,
+            padding=self.padding,
+            max_length=self.max_length,
+            truncation=self.truncation
+        )
+
+    def __len__(self):
+        return len(self.label)
+
+    def __getitem__(self, item):
+        outputs = {key: torch.LongTensor(value[item]) for key, value in self.input_encodes.items()}
+        outputs['labels'] = torch.LongTensor([self.label[item]])
+        return outputs
+
+    @staticmethod
+    def process_input(data):
+        return data['hypothesis'], data['premise']
+
+
+class NegSNLIAutoInferenceDataset:
+    task_name = 'neg_snli'
+    padding = 'max_length'
+    max_length = 128
+    truncation = 'longest_first'
+
+    def __init__(
+            self,
+            tokenizer,
+            data_type: Text = 'test',
+    ):
+        assert data_type in ['test', 'validation', 'validation_matched', 'validation_mismatched']
+
+        PWD = os.path.dirname(os.path.abspath(__file__))
+        file_name = os.path.join(PWD, 'neg_nli/SNLI.txt')
+
+        data = {
+            "premise": [],
+            "hypothesis": [],
+            "label": []
+        }
+        with open(file_name, 'r', encoding='latin-1') as readFile:
+            for line in readFile.readlines():
+                idx_, premise_, hypothesis_, label_ = line.split('\t')
+                if label_.strip() == 'gold_label':
+                    continue
+                label_ = 0 if label_.strip() == 'entailment' else 1 if label_.strip() == 'neutral' else 2
+                data['premise'].append(premise_.strip())
+                data['hypothesis'].append(hypothesis_.strip())
+                data['label'].append(label_)
+
+        self.label = data['label']
+        input_1, input_2 = self.process_input(data)
+
+        self.label = data['label']
+        self.input_encodes = tokenizer(
+            input_1,
+            input_2,
+            padding=self.padding,
+            max_length=self.max_length,
+            truncation=self.truncation
+        )
+
+    def __len__(self):
+        return len(self.label)
+
+    def __getitem__(self, item):
+        outputs = {key: torch.LongTensor(value[item]) for key, value in self.input_encodes.items()}
+        outputs['labels'] = torch.LongTensor([self.label[item]])
+        return outputs
+
+    @staticmethod
+    def process_input(data):
+        return data['hypothesis'], data['premise']
+
+
 class NegRTEAutoInferenceDataset:
     task_name = 'neg_rte'
     padding = 'max_length'
@@ -140,21 +237,14 @@ class NegRTEAutoInferenceDataset:
         input_1, input_2 = self.process_input(data)
 
         self.label = data['label']
-        if input_2 is None:
-            self.input_encodes = tokenizer(
-                input_1,
-                padding=self.padding,
-                max_length=self.max_length,
-                truncation=self.truncation
-            )
-        else:
-            self.input_encodes = tokenizer(
-                input_1,
-                input_2,
-                padding=self.padding,
-                max_length=self.max_length,
-                truncation=self.truncation
-            )
+        self.input_encodes = tokenizer(
+            input_1,
+            input_2,
+            padding=self.padding,
+            max_length=self.max_length,
+            truncation=self.truncation
+        )
+
     def __len__(self):
         return len(self.label)
 
@@ -203,21 +293,13 @@ class NegMNLIAutoInferenceDataset:
         input_1, input_2 = self.process_input(data)
 
         self.label = data['label']
-        if input_2 is None:
-            self.input_encodes = tokenizer(
-                input_1,
-                padding=self.padding,
-                max_length=self.max_length,
-                truncation=self.truncation
-            )
-        else:
-            self.input_encodes = tokenizer(
-                input_1,
-                input_2,
-                padding=self.padding,
-                max_length=self.max_length,
-                truncation=self.truncation
-            )
+        self.input_encodes = tokenizer(
+            input_1,
+            input_2,
+            padding=self.padding,
+            max_length=self.max_length,
+            truncation=self.truncation
+        )
 
     def __len__(self):
         return len(self.label)
