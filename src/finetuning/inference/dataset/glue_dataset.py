@@ -155,6 +155,13 @@ class NegRTEAutoInferenceDataset:
                 max_length=self.max_length,
                 truncation=self.truncation
             )
+    def __len__(self):
+        return len(self.label)
+
+    def __getitem__(self, item):
+        outputs = {key: torch.LongTensor(value[item]) for key, value in self.input_encodes.items()}
+        outputs['labels'] = torch.LongTensor([self.label[item]])
+        return outputs
 
     @staticmethod
     def process_input(data):
@@ -211,6 +218,14 @@ class NegMNLIAutoInferenceDataset:
                 max_length=self.max_length,
                 truncation=self.truncation
             )
+
+    def __len__(self):
+        return len(self.label)
+
+    def __getitem__(self, item):
+        outputs = {key: torch.LongTensor(value[item]) for key, value in self.input_encodes.items()}
+        outputs['labels'] = torch.LongTensor([self.label[item]])
+        return outputs
 
     @staticmethod
     def process_input(data):
