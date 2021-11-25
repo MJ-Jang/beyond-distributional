@@ -70,7 +70,7 @@ class ExperimentOperator:
         print(f"Loading {args.model_type} model...")
         pretrain_model_dict = {
             "electra-large": 'google/electra-large-generator',
-            "electra-small": "google/electra-small-generator",
+            "electra-base": "google/electra-base-generator",
             "bert-base": "bert-base-cased",
             "bert-large": "bert-large-cased",
             "roberta-base": "roberta-base",

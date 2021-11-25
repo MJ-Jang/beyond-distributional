@@ -1,7 +1,7 @@
 EXP_TYPE=$1
 TOPK=$2
 
-MODEL_TYPES="bert-base bert-large electra-small electra-large roberta-base
+MODEL_TYPES="bert-base bert-large electra-base electra-large roberta-base
 roberta-large albert-base albert-large"
 
 BATCH_SIZE=32
