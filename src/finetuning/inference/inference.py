@@ -9,11 +9,11 @@ from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, T5TokenizerFast, T5ForConditionalGeneration
 from tqdm import tqdm
 from scipy.stats import entropy
-from sklearn.metrics import precision_recall_fscore_support, accuracy_score
+from sklearn.metrics import precision_recall_fscore_support, accuracy_score, matthews_corrcoef
 
 
 PWD = os.path.dirname(os.path.abspath(__file__))
-GLUE_TASK_LIST = ['rte', 'mrpc', 'mnli', 'qnli', 'qqp', 'sst']
+GLUE_TASK_LIST = ['rte', 'mrpc', 'mnli', 'qnli', 'qqp', 'sst', 'cola']
 
 
 class AutoModelInferencer:
@@ -70,7 +70,7 @@ def prepare_model(args):
 def prepare_data(args, tokenizer):
     from dataset import MRPCAutoInferenceDataset, MNLIAutoInferenceDataset, QQPAutoInferenceDataset,\
     QNLIAutoInferenceDataset, RTEAutoInferenceDataset, SSTAutoInferenceDataset, NegRTEAutoInferenceDataset,\
-    NegMNLIAutoInferenceDataset,  NegSNLIAutoInferenceDataset, SNLIAutoInferenceDataset
+    NegMNLIAutoInferenceDataset,  NegSNLIAutoInferenceDataset, SNLIAutoInferenceDataset, COLAAutoInferenceDataset
 
     if args.dataset == 'rte':
         return RTEAutoInferenceDataset(tokenizer, data_type=args.data_type)
@@ -89,6 +89,9 @@ def prepare_data(args, tokenizer):
 
     elif args.dataset == 'sst':
         return SSTAutoInferenceDataset(tokenizer, data_type=args.data_type)
+
+    elif args.dataset == 'cola':
+        return COLAAutoInferenceDataset(tokenizer, data_type=args.data_type)
 
     elif args.dataset == 'snli':
         return SNLIAutoInferenceDataset(tokenizer, data_type=args.data_type)
@@ -155,6 +158,8 @@ def main(args):
         perf_dict['precision'] = precision
         perf_dict['recall'] = recall
         perf_dict['f1'] = f1
+        if args.dataset == 'cola':
+            perf_dict['matthews_cor'] = matthews_corrcoef(y_true=dataset.label, y_pred=predictions)
         print(f"{args.model_type}|{args.dataset}| Accuracy: {acc}")
 
     outputs = {

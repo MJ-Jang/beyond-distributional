@@ -105,6 +105,14 @@ class SSTAutoInferenceDataset(GLUEAuToInferenceDataset):
         return data['sentence'], None
 
 
+class COLAAutoInferenceDataset(GLUEAuToInferenceDataset):
+    task_name = 'cola'
+
+    @staticmethod
+    def process_input(data):
+        return data['sentence'], None
+
+
 class SNLIAutoInferenceDataset:
     task_name = 'snli'
     padding = 'max_length'
