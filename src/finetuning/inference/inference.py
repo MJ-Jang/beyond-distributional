@@ -57,7 +57,8 @@ def prepare_model(args):
         "snli": 3,
         "mnli_neg": 3,
         "rte_neg": 2,
-        "snli_neg": 3
+        "snli_neg": 3,
+        "cola": 2
     }
 
     print(f'model type: {args.model_type}')
