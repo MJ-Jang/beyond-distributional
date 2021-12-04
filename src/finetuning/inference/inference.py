@@ -160,8 +160,11 @@ def main(args):
         perf_dict['recall'] = recall
         perf_dict['f1'] = f1
         if args.dataset == 'cola':
-            perf_dict['matthews_cor'] = matthews_corrcoef(y_true=dataset.label, y_pred=predictions)
-        print(f"{args.model_type}|{args.dataset}| Accuracy: {acc}")
+            mc = matthews_corrcoef(y_true=dataset.label, y_pred=predictions)
+            perf_dict['matthews_cor'] = mc
+            print(f"{args.model_type}|{args.dataset}| Accuracy: {acc} | Matthews corr: {mc}")
+        else:
+            print(f"{args.model_type}|{args.dataset}| Accuracy: {acc}")
 
     outputs = {
         "idx": [i for i in range(len(predictions))],
