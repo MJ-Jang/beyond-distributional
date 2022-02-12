@@ -4,20 +4,22 @@ TOPK=$2
 MODEL_TYPES="bert-base bert-large electra-base electra-large roberta-base
 roberta-large albert-base albert-large"
 
+#MODEL_TYPES="meaning_matching-bert-base meaning_matching-roberta-base meaning_matching-bert-large meaning_matching-roberta-large"
+
 BATCH_SIZE=32
 DATA_PATH="data"
 OUTP_PATH="output"
 
 
-cmd="python src/experiment/experiment_baseline.py  \
-    --resource_dir $DATA_PATH \
-    --save_dir $OUTP_PATH \
-    --thesaursus_file data/cn_thesaursus.json \
-    --partial_kg_file data/conceptnet_partial.json \
-    --experiment_type $EXP_TYPE"
+#cmd="python src/experiment/experiment_baseline.py  \
+#    --resource_dir $DATA_PATH \
+#    --save_dir $OUTP_PATH \
+#    --thesaursus_file data/cn_thesaursus.json \
+#    --partial_kg_file data/conceptnet_partial.json \
+#    --experiment_type $EXP_TYPE"
 
-    echo $cmd
-    eval $cmd
+#    echo $cmd
+#    eval $cmd
 
 
 for mt in $MODEL_TYPES

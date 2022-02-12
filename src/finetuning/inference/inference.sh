@@ -1,8 +1,8 @@
 MODEL_NAME=$1
 REPEATS=$2
 
-datasets="mnli rte mrpc qnli qqp sst"
-
+datasets="mnli qnli qqp sst"
+datasets="cola"
 for data in $datasets
 do
     if [ $data == "mnli" ]
