@@ -1,5 +1,5 @@
 run_test_after_fit: True
-lr: 1e-5
+lr: 2e-5
 output_dir: '.'
 
 # read in dataset

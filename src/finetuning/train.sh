@@ -7,8 +7,8 @@ MODEL_NAME=$3
 cmd="python train.py  \
     task=nlp/text_classification \
     dataset=nlp/text_classification/$DATASET \
-    training=kobest \
-    trainer=kobest \
+    training=glue \
+    trainer=glue \
     trainer.gpus=$NGPU "
 
 
@@ -20,8 +20,7 @@ eval $cmd
 
 # make directory if not exist
 mkdir -p ../model_binary
-mkdir -p ../model_binary/skt
-mkdir -p ../model_binary/monologg
+mkdir -p ../model_binary/korca
 
 # copy model binaryfile to the directory we want
 cp outputs/checkpoints/test.ckpt ../model_binary/$MODEL_NAME-$DATASET.ckpt

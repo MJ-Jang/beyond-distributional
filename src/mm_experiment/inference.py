@@ -133,7 +133,7 @@ def main(args):
 
     inferencer = MMInferencer(model, batch_size=batch_size)
 
-    for data_type in ['dev']:
+    for data_type in ['validation']:
         pred_dataset = feature_dict[data_type]
         predictions = inferencer(dataset=pred_dataset)
 

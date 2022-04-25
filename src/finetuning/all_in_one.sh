@@ -1,8 +1,12 @@
 REPEATS=$1
 
-datasets="sst mnli rte mrpc qnli qqp"
-models="bert-large-cased korca/meaning-match-bert-large roberta-large korca/meaning-match-roberta-large"
-
+datasets="sst mnli qnli qqp"
+datasets="cola"
+models="korca/meaning-match-electra-large google/electra-large-discriminator"
+#models="korca/meaning-match-bert-large bert-large-cased"
+models="google/electra-large-discriminator"
+#models="korca/meaning-match-electra-large"
+#models="roberta-large korca/meaning-match-roberta-large"
 for model in $models
 do
     for data in $datasets
@@ -17,10 +21,10 @@ cd ./inference
 
 for model in $models
 do
-    cmd="bash train.sh $model $REPEATS"
+    cmd="bash inference.sh $model $REPEATS"
     echo $cmd
     eval $cmd
 done
 
 cd ../../
-rm -rf model_binary
+#rm -rf model_binary
