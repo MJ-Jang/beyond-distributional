@@ -1,0 +1,7 @@
+defaults:
+  - nlp/default
+_target_: lightning_transformers.task.nlp.text_classification.TextClassificationDataModule
+cfg:
+  dataset_name: /workspace/nikl-baseline/lightning-transformers/lightning_transformers/task/nlp/kobest_boolq
+  max_length: 128
+  truncation: longest_first

@@ -50,14 +50,15 @@ metric = load_metric("accuracy")
 
 
 pretrain_model_dict = {
-    "electra-small": "google/electra-small-generator",
-    "electra-large": 'google/electra-large-generator',
+    "electra-small": "google/electra-small-discriminator",
+    "electra-base": "google/electra-base-discriminator",
+    "electra-large": 'google/electra-large-discriminator',
     "bert-base": "bert-base-cased",
     "bert-large": "bert-large-cased",
     "roberta-base": "roberta-base",
     "roberta-large": "roberta-large",
     "albert-base": "albert-base-v2",
-    "albert-large": "albert-large-v2"
+    "albert-large": "albert-large-v2",
 }
 
 
@@ -90,14 +91,67 @@ def freeze_encoder(model):
     return model
 
 
+def load_plm_state_dict(file_name, plm_name):
+    aa = torch.load(file_name)
+    new_dict = {}
+    for key in aa.keys():
+        if key.startswith(plm_name):
+            new_dict[key.replace(f"{plm_name}.", "")] = aa[key]
+    return new_dict
+
+
 def main(args):
     dir_path = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(dir_path, 'config.yaml'), 'r') as readFile:
         config_file = yaml.load(readFile, Loader=yaml.SafeLoader)
     cfg = config_file.get('cfg')
 
-    tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[args.backbone_model_name])
-    model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[args.backbone_model_name])
+    if args.backbone_model_name in pretrain_model_dict:
+        tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[args.backbone_model_name])
+        model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[args.backbone_model_name])
+    elif "meaning_matching" in args.backbone_model_name:
+        backbone_model = args.backbone_model_name.replace("meaning_matching-", "").split("-n_neg")[0]
+        tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[backbone_model])
+        model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[backbone_model])
+
+        # load model from binary file
+        dir_path = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(dir_path, "../mm_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
+
+        if backbone_model.startswith("roberta"):
+            model.roberta.load_state_dict(load_plm_state_dict(file_path, 'roberta'))
+        elif backbone_model.startswith('electra'):
+            model.electra.load_state_dict(load_plm_state_dict(file_path, 'electra'))
+        elif backbone_model.startswith('bert'):
+            model.bert.load_state_dict(load_plm_state_dict(file_path, 'bert'))
+        elif backbone_model.startswith('albert'):
+            model.albert.load_state_dict(load_plm_state_dict(file_path, 'albert'))
+        else:
+            raise NotImplementedError
+
+    elif "word_class_predict" in args.backbone_model_name:
+        backbone_model = args.backbone_model_name.replace("word_class_predict-", "")
+        tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[backbone_model])
+        model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[backbone_model])
+
+        # load model from binary file
+        dir_path = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(dir_path, "../wc_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
+
+        if backbone_model.startswith("roberta"):
+            model.roberta.load_state_dict(load_plm_state_dict(file_path, 'roberta'))
+        elif backbone_model.startswith('electra'):
+            model.electra.load_state_dict(load_plm_state_dict(file_path, 'electra'))
+        elif backbone_model.startswith('bert'):
+            model.bert.load_state_dict(load_plm_state_dict(file_path, 'bert'))
+        elif backbone_model.startswith('albert'):
+            model.albert.load_state_dict(load_plm_state_dict(file_path, 'albert'))
+        else:
+            raise NotImplementedError
+
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(args.backbone_model_name)
+        model = AutoModelForSequenceClassification.from_pretrained(args.backbone_model_name)
 
     if args.freeze_enc:
         model = freeze_encoder(model)

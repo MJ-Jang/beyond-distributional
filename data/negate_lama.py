@@ -181,12 +181,21 @@ def process_lama_negation(args):
         with open(kg_path, 'r', encoding='utf-8') as loadFile:
             kg_dict = json.load(loadFile)
 
-    # get wrong_predictions from ConceptNet API
+    # get wrong_predictions from ConceptNet
     for d in tqdm(data_for_use):
-        word_ = d['word']
-        relation_ = d['relation']
-        tokens_ = kg_dict[word_][relation_]['tokens']
-        d['wrong_prediction'] = list(set(tokens_))
+        try:
+            word_ = d['word']
+            relation_ = d['relation']
+            tokens_ = kg_dict[word_][relation_]['tokens']
+            d['wrong_prediction'] = list(set(tokens_))
+        except KeyError:
+            pass
+    # filter without wrong predictions
+    index_ = []
+    for i, v in enumerate(data_for_use):
+        if v.get('wrong_prediction'):
+            index_.append(i)
+    data_for_use = [d for i, d in enumerate(data_for_use) if i in index_]
 
     # save as jsonl for consistency in data format
     save_filename = 'exp2_dataset.jsonl'

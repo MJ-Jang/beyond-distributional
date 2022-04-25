@@ -42,9 +42,23 @@ import yaml
 import numpy as np
 import sys
 from tqdm import tqdm
-from transformers import pipeline
+from transformers import pipeline, BertForMaskedLM, RobertaForMaskedLM, AutoTokenizer
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 from metrics import jaccard_similarity, cosine_similarity, top_hitrate
+
+
+PWD = os.path.dirname(os.path.abspath(__file__))
+
+
+def load_plm_state_dict(file_name, plm_name):
+    aa = torch.load(file_name)
+    new_dict = {}
+    for key in aa.keys():
+        if key.startswith(plm_name):
+            if key.startswith(f'{plm_name}.pooler'):
+                continue
+            new_dict[key.replace(f"{plm_name}.", "")] = aa[key]
+    return new_dict
 
 
 class ExperimentOperator:
@@ -56,19 +70,23 @@ class ExperimentOperator:
         print(f"Loading {args.model_type} model...")
         pretrain_model_dict = {
             "electra-large": 'google/electra-large-generator',
-            "electra-small": "google/electra-small-generator",
+            "electra-base": "google/electra-base-generator",
             "bert-base": "bert-base-cased",
             "bert-large": "bert-large-cased",
             "roberta-base": "roberta-base",
             "roberta-large": "roberta-large",
             "albert-base": "albert-base-v2",
-            "albert-large": "albert-large-v2"
+            "albert-large": "albert-large-v2",
+            "meaning_matching-bert-base": "meaning_matching-bert-base-n_neg10",
+            "meaning_matching-roberta-base": "meaning_matching-roberta-base-n_neg10",
+            "meaning_matching-bert-large": "meaning_matching-bert-large-n_neg10",
+            "meaning_matching-roberta-large": "meaning_matching-roberta-large-n_neg10"
         }
 
         use_gpu = torch.cuda.is_available()
         device = 0 if use_gpu else -1
 
-        if args.model_type != 'baseline':
+        if args.model_type != 'baseline' and not args.model_type.startswith('meaning_matching'):
             self.unmasker = pipeline(
                 'fill-mask',
                 model=pretrain_model_dict[args.model_type],
@@ -76,6 +94,30 @@ class ExperimentOperator:
                 top_k=args.top_k
             )
             self.mask_token = self.unmasker.tokenizer.mask_token
+        elif args.model_type.startswith('meaning_matching'):
+            file_path = os.path.join(PWD, "../mm_experiment/model_binary/",
+                                     f"{pretrain_model_dict[args.model_type]}.ckpt")
+            if '-bert-' in args.model_type:
+                normalized_model_name = args.model_type.replace("meaning_matching-", "")
+                model = BertForMaskedLM.from_pretrained(pretrain_model_dict[normalized_model_name])
+                tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[normalized_model_name])
+                model.bert.load_state_dict(load_plm_state_dict(file_path, 'bert'))
+            elif '-roberta-' in args.model_type:
+                normalized_model_name = args.model_type.replace("meaning_matching-", "")
+                model = RobertaForMaskedLM.from_pretrained(pretrain_model_dict[normalized_model_name])
+                tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[normalized_model_name])
+                model.roberta.load_state_dict(load_plm_state_dict(file_path, 'roberta'))
+            else:
+                raise NotImplementedError
+            self.unmasker = pipeline(
+                'fill-mask',
+                model=model,
+                tokenizer=tokenizer,
+                device=device,
+                top_k=args.top_k
+            )
+            self.mask_token = self.unmasker.tokenizer.mask_token
+
         else:
             self.unmasker = None
             self.mask_token = None
@@ -172,7 +214,7 @@ class ExperimentOperator:
             original_results_ = self.unmasker(batch_)
             original_preds_ = list()
             for r in original_results_:
-                tokens = [r_['token_str'].encode('ascii', 'ignore').decode('utf-8') for r_ in r]
+                tokens = [r_['token_str'].encode('ascii', 'ignore').decode('utf-8').strip() for r_ in r]
                 scores = [r_['score'] for r_ in r]
                 original_preds_.append({'tokens': tokens, 'scores': scores})
             preds += original_preds_
@@ -364,7 +406,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_dir', type=str, default='output',
                         help='directory path where results will be saved')
     # params
-    parser.add_argument('--model_type', type=str, default='bert-base',
+    parser.add_argument('--model_type', type=str, default='meaning_matching-bert-base',
                         help='type of pre-trained models for Masked Word Prediction')
     parser.add_argument('--top_k', type=int, default=10,
                         help='top-k predictions for Masked word prediction.')

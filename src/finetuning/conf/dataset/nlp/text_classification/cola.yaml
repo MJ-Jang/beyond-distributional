@@ -1,0 +1,7 @@
+defaults:
+  - nlp/default
+_target_: lightning_transformers.task.nlp.text_classification.TextClassificationDataModule
+cfg:
+  dataset_name: /workspace/Londinium/src/finetuning/lightning_transformers/task/nlp/cola
+  max_length: 128
+  truncation: longest_first

@@ -42,7 +42,7 @@ import json
 import pickle
 import argparse
 from typing import Text, List, Dict
-from transformers import AutoModel
+from transformers import AutoModel, AutoModelForSequenceClassification
 from transformers import AutoTokenizer
 from tqdm import tqdm
 from numpy import dot
@@ -51,22 +51,47 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 
 pretrain_model_dict = {
-    "electra-small": "google/electra-small-generator",
-    "electra-large": 'google/electra-large-generator',
+    "electra-small": "google/electra-small-discriminator",
+    "electra-base": "google/electra-base-discriminator",
+    "electra-large": 'google/electra-large-discriminator',
     "bert-base": "bert-base-cased",
     "bert-large": "bert-large-cased",
     "roberta-base": "roberta-base",
     "roberta-large": "roberta-large",
     "albert-base": "albert-base-v2",
-    "albert-large": "albert-large-v2"
+    "albert-large": "albert-large-v2",
 }
 
 
 class WordVectorGenerator:
 
     def __init__(self, model_name: Text, device):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name)
+        if model_name in pretrain_model_dict:
+            self.tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[model_name])
+            self.model = AutoModel.from_pretrained(pretrain_model_dict[model_name])
+        elif "meaning_matching" in model_name:
+            backbone_model = model_name.replace("meaning_matching-", "").split("-n_neg")[0]
+            self.tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[backbone_model])
+            model_clf = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[backbone_model])
+
+            # load model from binary file
+            dir_path = os.path.dirname(os.path.abspath(__file__))
+            file_path = os.path.join(dir_path, "../mm_experiment/model_binary/", f"{model_name}.ckpt")
+            model_clf.load_state_dict(torch.load(file_path))
+
+            if backbone_model.startswith("roberta"):
+                self.model = model_clf.roberta
+            elif backbone_model.startswith("electra"):
+                self.model = model_clf.electra
+            elif backbone_model.startswith('bert'):
+                self.model = model_clf.bert
+            elif backbone_model.startswith('albert'):
+                self.model = model_clf.albert
+            else:
+                raise NotImplementedError
+        else:
+            raise NotImplementedError
+
         self.model.to(device)
         self.special_tokens = [
             self.tokenizer.pad_token_id,
@@ -127,6 +152,22 @@ def main():
     dir_path = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(dir_path, '../../data/SEI_data')
 
+    candidates = [
+        "meaning_matching-roberta-base-n_neg3",
+        "meaning_matching-roberta-base-n_neg5",
+        "meaning_matching-roberta-base-n_neg10",
+        "meaning_matching-roberta-base-n_neg20",
+        "meaning_matching-roberta-large-n_neg10",
+        "meaning_matching-bert-base-n_neg10",
+        "meaning_matching-bert-large-n_neg10",
+        "meaning_matching-electra-small-n_neg10",
+        "meaning_matching-electra-base-n_neg10",
+        "meaning_matching-electra-large-n_neg10",
+        "meaning_matching-albert-base-n_neg10",
+        "meaning_matching-albert-large-n_neg10",
+    ]
+    candidates += list(pretrain_model_dict.keys())
+
     val_acc, test_acc = list(), list()
 
     for data in tqdm(['dev', 'test'], desc='Processing datasets'):
@@ -137,8 +178,9 @@ def main():
         label_idx = test_set['label_idx'].tolist()
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        for key, value in tqdm(pretrain_model_dict.items(), total=len(pretrain_model_dict)):
-            generator = WordVectorGenerator(model_name=value, device=device)
+
+        for key in tqdm(candidates, total=len(candidates)):
+            generator = WordVectorGenerator(model_name=key, device=device)
 
             word1_vecs = generator(word1)
             word2_vecs = generator(word2)
@@ -155,7 +197,7 @@ def main():
                 test_acc.append(accuracy)
 
     outp = {
-        "model": list(pretrain_model_dict.keys()),
+        "model": candidates,
         "val_acc": val_acc,
         "test_acc": test_acc
     }

@@ -48,14 +48,15 @@ from data import SemanticIdentificationDataModule
 
 
 pretrain_model_dict = {
-    "electra-small": "google/electra-small-generator",
-    "electra-large": 'google/electra-large-generator',
+    "electra-small": "google/electra-small-discriminator",
+    "electra-base": "google/electra-base-discriminator",
+    "electra-large": 'google/electra-large-discriminator',
     "bert-base": "bert-base-cased",
     "bert-large": "bert-large-cased",
     "roberta-base": "roberta-base",
     "roberta-large": "roberta-large",
     "albert-base": "albert-base-v2",
-    "albert-large": "albert-large-v2"
+    "albert-large": "albert-large-v2",
 }
 
 
@@ -95,8 +96,28 @@ def main(args):
         config_file = yaml.load(readFile, Loader=yaml.SafeLoader)
     cfg = config_file.get('cfg')
 
-    tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[args.backbone_model_name])
-    model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[args.backbone_model_name])
+    if args.backbone_model_name in pretrain_model_dict:
+        tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[args.backbone_model_name])
+        model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[args.backbone_model_name])
+    elif "meaning_matching" in args.backbone_model_name:
+        backbone_model = args.backbone_model_name.replace("meaning_matching-", "").split("-n_neg")[0]
+        tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[backbone_model])
+        model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[backbone_model])
+
+        # load model from binary file
+        dir_path = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(dir_path, "../mm_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
+
+        model.load_state_dict(torch.load(file_path))
+
+    elif "word_class_predict" in args.backbone_model_name:
+        backbone_model = args.backbone_model_name.replace("word_class_predict-", "")
+        tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[backbone_model])
+        model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[backbone_model])
+
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(args.backbone_model_name)
+        model = AutoModelForSequenceClassification.from_pretrained(args.backbone_model_name)
 
     data_dir_path = os.path.join(dir_path, '../../data/SEI_data')
 
