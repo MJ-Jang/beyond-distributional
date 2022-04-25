@@ -33,6 +33,8 @@ __maintainer__ = "Myeongjun Jang"
 __email__ = "myeongjun.jang@cs.ox.ac.uk"
 __status__ = "Development"
 
+
+# -*- coding: utf-8 -*-
 import transformers
 import os
 import torch
@@ -41,10 +43,10 @@ import yaml
 import numpy as np
 from datasets import load_metric
 from transformers import AutoTokenizer, EarlyStoppingCallback, AutoModelForSequenceClassification
-from data import WordClassPredictionDataModule
+from data import SemanticIdentificationDataModule
 
 
-metric = load_metric("f1")
+metric = load_metric("accuracy")
 
 
 pretrain_model_dict = {
@@ -56,7 +58,7 @@ pretrain_model_dict = {
     "roberta-base": "roberta-base",
     "roberta-large": "roberta-large",
     "albert-base": "albert-base-v2",
-    "albert-large": "albert-large-v2"
+    "albert-large": "albert-large-v2",
 }
 
 
@@ -70,9 +72,7 @@ def save_state_dict(model, save_path: str, save_prefix: str):
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
     predictions = np.argmax(logits, axis=-1)
-    if len(labels.shape) == 2:
-        labels = labels.reshape([-1])
-    return metric.compute(predictions=predictions, references=labels, average='weighted')
+    return metric.compute(predictions=predictions, references=labels)
 
 
 def freeze_encoder(model):
@@ -91,21 +91,56 @@ def freeze_encoder(model):
     return model
 
 
+def load_plm_state_dict(file_name, plm_name):
+    aa = torch.load(file_name)
+    new_dict = {}
+    for key in aa.keys():
+        if key.startswith(plm_name):
+            new_dict[key.replace(f"{plm_name}.", "")] = aa[key]
+    return new_dict
+
+
 def main(args):
     dir_path = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(dir_path, 'config.yaml'), 'r') as readFile:
         config_file = yaml.load(readFile, Loader=yaml.SafeLoader)
     cfg = config_file.get('cfg')
 
-    tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[args.backbone_model_name])
-    model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[args.backbone_model_name],
-                                                               num_labels=4)
+    if args.backbone_model_name in pretrain_model_dict:
+        tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[args.backbone_model_name])
+        model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[args.backbone_model_name])
+    elif "meaning_matching" in args.backbone_model_name:
+        backbone_model = args.backbone_model_name.replace("meaning_matching-", "").split("-n_neg")[0]
+        tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[backbone_model])
+        model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[backbone_model])
 
-    data_dir_path = os.path.join(dir_path, '../../data/word_class_prediction')
+        # load model from binary file
+        dir_path = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(dir_path, "../meaning_match_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
 
-    data_module = WordClassPredictionDataModule(
+        if backbone_model.startswith("roberta"):
+            model.roberta.load_state_dict(load_plm_state_dict(file_path, 'roberta'))
+        elif backbone_model.startswith('electra'):
+            model.electra.load_state_dict(load_plm_state_dict(file_path, 'electra'))
+        elif backbone_model.startswith('bert'):
+            model.bert.load_state_dict(load_plm_state_dict(file_path, 'bert'))
+        elif backbone_model.startswith('albert'):
+            model.albert.load_state_dict(load_plm_state_dict(file_path, 'albert'))
+        else:
+            raise NotImplementedError
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(args.backbone_model_name)
+        model = AutoModelForSequenceClassification.from_pretrained(args.backbone_model_name)
+
+    if args.freeze_enc:
+        model = freeze_encoder(model)
+
+    data_dir_path = os.path.join(dir_path, '../../data/SAR')
+
+    data_module = SemanticIdentificationDataModule(
         tokenizer,
         data_dir_path=data_dir_path,
+        is_balanced=args.is_balanced,
         max_length=cfg.get('max_length'),
     )
     feature_dict = data_module()
@@ -128,7 +163,7 @@ def main(args):
             num_train_epochs=cfg.get('epochs'),
             per_device_train_batch_size=batch_size,
             per_device_eval_batch_size=batch_size,
-            metric_for_best_model='f1',
+            metric_for_best_model='accuracy',
             load_best_model_at_end=True,
             greater_is_better=True,
             evaluation_strategy=transformers.IntervalStrategy('epoch')
@@ -144,14 +179,16 @@ def main(args):
     trained_model = trainer.model
 
     model_name = args.backbone_model_name.split('/')[-1]
-    save_prefix = f"word_class_predict-{model_name}"
+    save_prefix = f"sar-{model_name}-balanced_{args.is_balanced}-freeze_{args.freeze_enc}"
     save_state_dict(trained_model, os.path.join(dir_path, './model_binary'), save_prefix)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--backbone_model_name', type=str, default='electra-small')
+    parser.add_argument('--backbone_model_name', type=str, default='albert-base')
+    parser.add_argument('--freeze_enc', action='store_true')
+    parser.add_argument('--is_balanced', action='store_true')
 
     args = parser.parse_args()
     main(args)

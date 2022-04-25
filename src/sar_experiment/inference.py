@@ -27,26 +27,24 @@
 
 __license__ = "BSD-2-Clause"
 __version__ = "2021.1"
-__date__ = "20 07 2021"
+__date__ = "22 07 2021"
 __author__ = "Myeongjun Jang"
 __maintainer__ = "Myeongjun Jang"
 __email__ = "myeongjun.jang@cs.ox.ac.uk"
 __status__ = "Development"
 
 
-# -*- coding: utf-8 -*-
+import torch
 import transformers
 import os
-import torch
-import argparse
 import yaml
-import numpy as np
-from datasets import load_metric
-from transformers import AutoTokenizer, EarlyStoppingCallback, AutoModelForSequenceClassification
+import json
+import argparse
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from typing import List
+from tqdm import tqdm
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from data import SemanticIdentificationDataModule
-
-
-metric = load_metric("accuracy")
 
 
 pretrain_model_dict = {
@@ -62,42 +60,34 @@ pretrain_model_dict = {
 }
 
 
-def save_state_dict(model, save_path: str, save_prefix: str):
-    os.makedirs(save_path, exist_ok=True)
-    filename = os.path.join(save_path, save_prefix + '.ckpt')
-    model = model.cpu()
-    torch.save(model.state_dict(), filename)
+class SEIInferencer:
 
+    def __init__(
+            self,
+            model,
+            batch_size: int = 64
+    ):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model = model
+        self.batch_size = batch_size
+        self.model.to(self.device)
 
-def compute_metrics(eval_pred):
-    logits, labels = eval_pred
-    predictions = np.argmax(logits, axis=-1)
-    return metric.compute(predictions=predictions, references=labels)
+    def __call__(self, dataset) -> List:
+        outp = []
+        for start in tqdm(range(0, len(dataset), self.batch_size)):
+            batch = dataset[start:start+self.batch_size]
 
+            inputs = dict()
+            for key, value in batch.items():
+                if key == 'labels':
+                    continue
+                inputs[key] = value.to(self.device)
 
-def freeze_encoder(model):
-    if model.base_model_prefix == 'roberta':
-        for param in model.roberta.parameters():
-            param.requires_grad = False
-    if model.base_model_prefix == 'bert':
-        for param in model.bert.parameters():
-            param.requires_grad = False
-    if model.base_model_prefix == 'albert':
-        for param in model.albert.parameters():
-            param.requires_grad = False
-    if model.base_model_prefix == 'electra':
-        for param in model.electra.parameters():
-            param.requires_grad = False
-    return model
-
-
-def load_plm_state_dict(file_name, plm_name):
-    aa = torch.load(file_name)
-    new_dict = {}
-    for key in aa.keys():
-        if key.startswith(plm_name):
-            new_dict[key.replace(f"{plm_name}.", "")] = aa[key]
-    return new_dict
+            logits = self.model(**inputs)['logits']
+            preds = logits.argmax(dim=-1)
+            preds = preds.detach().cpu().tolist()
+            outp += preds
+        return outp
 
 
 def main(args):
@@ -116,47 +106,14 @@ def main(args):
 
         # load model from binary file
         dir_path = os.path.dirname(os.path.abspath(__file__))
-        file_path = os.path.join(dir_path, "../mm_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
+        file_path = os.path.join(dir_path, "../meaning_match_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
 
-        if backbone_model.startswith("roberta"):
-            model.roberta.load_state_dict(load_plm_state_dict(file_path, 'roberta'))
-        elif backbone_model.startswith('electra'):
-            model.electra.load_state_dict(load_plm_state_dict(file_path, 'electra'))
-        elif backbone_model.startswith('bert'):
-            model.bert.load_state_dict(load_plm_state_dict(file_path, 'bert'))
-        elif backbone_model.startswith('albert'):
-            model.albert.load_state_dict(load_plm_state_dict(file_path, 'albert'))
-        else:
-            raise NotImplementedError
-
-    elif "word_class_predict" in args.backbone_model_name:
-        backbone_model = args.backbone_model_name.replace("word_class_predict-", "")
-        tokenizer = AutoTokenizer.from_pretrained(pretrain_model_dict[backbone_model])
-        model = AutoModelForSequenceClassification.from_pretrained(pretrain_model_dict[backbone_model])
-
-        # load model from binary file
-        dir_path = os.path.dirname(os.path.abspath(__file__))
-        file_path = os.path.join(dir_path, "../wc_experiment/model_binary/", f"{args.backbone_model_name}.ckpt")
-
-        if backbone_model.startswith("roberta"):
-            model.roberta.load_state_dict(load_plm_state_dict(file_path, 'roberta'))
-        elif backbone_model.startswith('electra'):
-            model.electra.load_state_dict(load_plm_state_dict(file_path, 'electra'))
-        elif backbone_model.startswith('bert'):
-            model.bert.load_state_dict(load_plm_state_dict(file_path, 'bert'))
-        elif backbone_model.startswith('albert'):
-            model.albert.load_state_dict(load_plm_state_dict(file_path, 'albert'))
-        else:
-            raise NotImplementedError
-
+        model.load_state_dict(torch.load(file_path))
     else:
         tokenizer = AutoTokenizer.from_pretrained(args.backbone_model_name)
         model = AutoModelForSequenceClassification.from_pretrained(args.backbone_model_name)
 
-    if args.freeze_enc:
-        model = freeze_encoder(model)
-
-    data_dir_path = os.path.join(dir_path, '../../data/SEI_data')
+    data_dir_path = os.path.join(dir_path, '../../data/SAR')
 
     data_module = SemanticIdentificationDataModule(
         tokenizer,
@@ -164,52 +121,64 @@ def main(args):
         is_balanced=args.is_balanced,
         max_length=cfg.get('max_length'),
     )
+
     feature_dict = data_module()
 
-    train_dataset = feature_dict['train']
-    eval_dataset = feature_dict['validation']
+    # load model
+    model_name = args.backbone_model_name.split('/')[-1]
+    file_name = f"sar-{model_name}-balanced_{args.is_balanced}-freeze_{args.freeze_enc}.ckpt"
 
+    if torch.cuda.is_available():
+        savefile = torch.load(os.path.join(dir_path, args.model_dir, file_name))
+    else:
+        savefile = torch.load(os.path.join(dir_path, args.model_dir, file_name), map_location=torch.device('cpu'))
+    model.load_state_dict(savefile)
+    model.eval()
+    
     if 'large' in args.backbone_model_name:
         batch_size = cfg.get("batch_size_large")
     else:
         batch_size = cfg.get("batch_size_base")
+        
+    inferencer = SEIInferencer(model, batch_size=batch_size)
 
-    trainer = transformers.Trainer(
-        model=model,
-        args=transformers.TrainingArguments(
-            output_dir=os.path.join(dir_path, cfg.get('output_dir')),
-            overwrite_output_dir=True,
-            learning_rate=float(cfg.get('learning_rate')),
-            do_train=True,
-            num_train_epochs=cfg.get('epochs'),
-            per_device_train_batch_size=batch_size,
-            per_device_eval_batch_size=batch_size,
-            metric_for_best_model='accuracy',
-            load_best_model_at_end=True,
-            greater_is_better=True,
-            evaluation_strategy=transformers.IntervalStrategy('epoch')
-        ),
-        train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
-        compute_metrics=compute_metrics,
-        callbacks=[EarlyStoppingCallback(early_stopping_patience=cfg.get('patience'))]
-    )
+    for data_type in ['validation', 'test']:
+        pred_dataset = feature_dict[data_type]
+        predictions = inferencer(dataset=pred_dataset)
 
-    trainer.train()
+        perf_dict = {}
+        acc = accuracy_score(y_true=pred_dataset['label_idx'], y_pred=predictions)
 
-    trained_model = trainer.model
+        perf_dict['accuracy'] = acc
+        print(f"{args.backbone_model_name}|{data_type}| Accuracy: {acc}")
 
-    model_name = args.backbone_model_name.split('/')[-1]
-    save_prefix = f"sei-{model_name}-balanced_{args.is_balanced}-freeze_{args.freeze_enc}"
-    save_state_dict(trained_model, os.path.join(dir_path, './model_binary'), save_prefix)
+        outputs = {
+            "idx": [i for i in range(len(predictions))],
+            "preds": predictions
+        }
+        outputs.update(perf_dict)
+
+        # Here
+        save_path = os.path.join(dir_path, args.save_dir, f"{model_name}-balanced_{args.is_balanced}-freeze_{args.freeze_enc}")
+        os.makedirs(save_path, exist_ok=True)
+        file_name = f"{data_type}.json"
+        with open(os.path.join(save_path, file_name), 'w') as saveFile:
+            json.dump(outputs, saveFile)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--backbone_model_name', type=str, default='albert-base')
+    parser.add_argument('--backbone_model_name', type=str, default='google/electra-large-discriminator',
+                        help='type or pre-trained models')
     parser.add_argument('--freeze_enc', action='store_true')
     parser.add_argument('--is_balanced', action='store_true')
+    parser.add_argument('--save_dir', type=str, default='../../output/sar_experiment',
+                        help='directory to save results')
+    parser.add_argument('--model_dir', type=str, default='./model_binary',
+                        help='directory path where binary file is saved')
 
     args = parser.parse_args()
+
     main(args)
+

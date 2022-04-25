@@ -36,16 +36,17 @@ __status__ = "Development"
 
 import pandas as pd
 import os
-from typing import Text, List
+from typing import Text
 from datasets import Dataset, DatasetDict, ClassLabel
 
 
-class WordClassPredictionDataModule:
+class MeaningMatchingnDataModule:
 
     def __init__(
             self,
             tokenizer,
             data_dir_path: Text,
+            n_neg: int,
             max_length: int = 64,
             padding: Text = 'max_length',
             truncation: Text = 'longest_first'
@@ -55,9 +56,10 @@ class WordClassPredictionDataModule:
         self.padding = padding
         self.truncation = truncation
         self.data_dir_path = data_dir_path
+        self.n_neg = n_neg
 
     def __call__(self, *args, **kwargs):
-        dataset = self.load_wc_dataset(self.data_dir_path)
+        dataset = self.load_mm_dataset(self.data_dir_path, self.n_neg)
         features_dict = {}
 
         for phase, phase_dataset in dataset.items():
@@ -79,7 +81,7 @@ class WordClassPredictionDataModule:
         return features_dict
 
     def convert_to_features(self, example_batch):
-        inputs = list(zip(example_batch['Word'], example_batch['Sentence']))
+        inputs = list(zip(example_batch['word'], example_batch['definition']))
         features = self.tokenizer.batch_encode_plus(
             inputs,
             max_length=self.max_length,
@@ -89,23 +91,19 @@ class WordClassPredictionDataModule:
         features["labels"] = example_batch["label"]
         return features
 
-    def load_wc_dataset(self, data_dir_path: Text):
-        train = pd.read_csv(os.path.join(data_dir_path, f'train.tsv'), sep='\t')
-        dev = pd.read_csv(os.path.join(data_dir_path, f'dev.tsv'), sep='\t')
+    @staticmethod
+    def load_mm_dataset(data_dir_path: Text, n_neg: int):
+        train = pd.read_csv(os.path.join(data_dir_path, f'train-n_neg{n_neg}.tsv'), sep='\t')
+        dev = pd.read_csv(os.path.join(data_dir_path, f'dev-n_neg{n_neg}.tsv'), sep='\t')
         
         train = train.dropna()
-        dev = dev.dropna()
-
-        train['label'] = [self.map_label_to_idx(p) for p in train['Pos'].tolist()]
-        train = train.drop(columns='Pos')
-        dev['label'] = [self.map_label_to_idx(p) for p in dev['Pos'].tolist()]
-        dev = dev.drop(columns='Pos')
-
+        dev = dev.dropna()        
+        
         train = Dataset.from_dict({key: train[key].tolist() for key in train.keys()})
-        train.features['label'] = ClassLabel(num_classes=4, names=["n", "v", "a", "r"])
+        train.features['label'] = ClassLabel(num_classes=2, names=["False", "True"])
 
         dev = Dataset.from_dict({key: dev[key].tolist() for key in dev.keys()})
-        dev.features['label'] = ClassLabel(num_classes=4, names=["n", "v", "a", "r"])
+        dev.features['label'] = ClassLabel(num_classes=2, names=["False", "True"])
 
         outp_dict = DatasetDict(
             {
@@ -115,19 +113,9 @@ class WordClassPredictionDataModule:
         )
         return outp_dict
 
-    @staticmethod
-    def map_label_to_idx(labels: List):
-        label_dict = {
-            "n": 0,
-            "v": 1,
-            "a": 2,
-            "r": 3
-        }
-        return [label_dict[l] for l in labels]
-
 
 if __name__ == '__main__':
     from transformers import AutoTokenizer
     tokenizer = AutoTokenizer.from_pretrained('google/electra-small-generator')
-    module = WordClassPredictionDataModule(tokenizer, '../../data/word_class_prediction')
+    module = MeaningMatchingnDataModule(tokenizer, '../../data/meaning_matching')
     feature_dict = module()
