@@ -50,6 +50,15 @@ def main(args):
                 outp['data'].append(f"{d_}_mismatched")
                 outp['val_acc'].append(acc)
                 outp['val_f1'].append(f1)
+            elif d_ == 'cola':
+                val = json.load(open(f'{result_saved_path}/{m_}/{d_}-validation.json', 'r'))
+                acc = val['matthews_cor']  # for cola, not accuracy but matthews correlation
+                f1 = val['f1']
+
+                outp['model'].append(m_)
+                outp['data'].append(d_)
+                outp['val_acc'].append(acc)
+                outp['val_f1'].append(f1)
             else:
                 val = json.load(open(f'{result_saved_path}/{m_}/{d_}-validation.json', 'r'))
                 acc = val['accuracy']

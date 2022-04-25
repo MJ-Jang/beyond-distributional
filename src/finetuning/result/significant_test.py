@@ -41,6 +41,8 @@ def main():
         from scipy.stats import ttest_ind
         outp = {}
         for data_ in mm_res_.keys():
+            if data_ not in ['mnli', 'cola', 'sst', 'qqp', 'mrpc', 'qnli', 'rte']:
+                continue
             mm_acc_ = mm_res_[data_]['val_acc']
             original_acc_ = res_[data_]['val_acc']
 
@@ -50,10 +52,12 @@ def main():
 
     roberta_result = calculate_pvalue('roberta-large')
     bert_result = calculate_pvalue('bert-large')
+    electra_result = calculate_pvalue('electra-large')
 
     result = {
         "roberta": [value for key, value in roberta_result.items()],
-        "bert": [value for key, value in bert_result.items()]
+        "bert": [value for key, value in bert_result.items()],
+        "electra": [value for key, value in electra_result.items()]
     }
     result_df = pd.DataFrame(result)
     result_df.index = list(roberta_result.keys())
