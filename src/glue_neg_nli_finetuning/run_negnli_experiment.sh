@@ -20,24 +20,24 @@ do
     echo $cmd
     eval $cmd
 
-#    cmd="python inference.py --dataset mnli --model_type $model --data_type validation_mismatched
-#    --save_dir ../result/$REPEATS"
-#    echo $cmd
-#    eval $cmd
+    cmd="python inference.py --dataset mnli --model_type $model --data_type validation_mismatched
+    --save_dir ../result/$REPEATS"
+    echo $cmd
+    eval $cmd
 
     cd ../
 
-#    cmd="bash train.sh 8 mnli $model"
-#    echo $cmd
-#    eval $cmd
+    cmd="bash train.sh 8 mnli $model"
+    echo $cmd
+    eval $cmd
 
-#    cd ./inference
+    cd ./inference
 
-#    cmd="python inference.py --dataset mnli_neg --model_type $model --data_type validation
-#    --save_dir ../result/$REPEATS"
-#    echo $cmd
-#    eval $cmd
+    cmd="python inference.py --dataset mnli_neg --model_type $model --data_type validation
+    --save_dir ../result/$REPEATS"
+    echo $cmd
+    eval $cmd
 
-#    cd ../
+    cd ../
 done
 
