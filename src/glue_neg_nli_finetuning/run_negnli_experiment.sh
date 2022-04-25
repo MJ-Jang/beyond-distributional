@@ -1,6 +1,8 @@
 REPEATS=$1
 
-models="korca/bert-base-mnli"
+models="korca/meaning-match-electra-large google/electra-large-discriminator"
+models="korca/meaning-match-bert-large bert-large-cased"
+models="roberta-large korca/meaning-match-roberta-large"
 
 for model in $models
 do

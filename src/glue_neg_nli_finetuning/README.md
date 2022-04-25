@@ -358,3 +358,11 @@ For help or questions, join our huge community on [Slack](https://join.slack.com
 
 ## License
 Please observe the Apache 2.0 license that is listed in this repository. In addition, the Lightning framework is Patent Pending.
+
+
+## Before training
+Before training, the you must modify the config in `conf/dataset/nlp/text_classification/{task_name}.yaml`. You can run glue and neg_nli experiments with the following script.
+```bash
+bash run_glue_experiment.sh
+bash run_neg_nli_experiment.sh
+```
