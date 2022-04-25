@@ -3,6 +3,9 @@ numpy
 nltk
 textblob
 torch==1.8.1
-transformers==4.2.1
+transformers==4.7.0
+datasets
 matplotlib
 pyyaml
+scipy
+sklearn

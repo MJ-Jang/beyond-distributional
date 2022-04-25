@@ -135,3 +135,7 @@ resources/
 *.DS_Store
 .idea/
 __MACOSX
+
+# exp result folder
+*prediction.json
+*-vectors.dict

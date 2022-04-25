@@ -1,0 +1,10 @@
+coverage
+codecov>=2.1
+pytest>=5.0
+check-manifest
+twine==1.13.0
+isort
+yapf
+flake8
+pre-commit
+mypy
