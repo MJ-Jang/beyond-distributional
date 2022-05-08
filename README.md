@@ -1,4 +1,6 @@
 # beyond-distributional
+The repository of the paper "Beyond Distributional Hypothesis: Let Language Models Learn Meaning-Text Correspondence"
+
 
 ## Directory Description
 - data: preprocessing and data for our experiment will be placed here
